@@ -1,0 +1,43 @@
+language: php
+ 
+php:
+  - 7.1.3
+
+env:
+ global:
+  - MESSAGE="Tag Generated from TravisCI for build $TRAVIS_BUILD_NUMBER"
+  - CI_BUILD_NUMBER="$TRAVIS_BUILD_NUMBER"
+  - CI_PULL_REQUEST="$TRAVIS_PULL_REQUEST"
+  - CI_BRANCH="$TRAVIS_BRANCH"
+  
+install:
+ - curl -s http://getcomposer.org/installer | php
+ - php composer.phar install --dev --no-interaction
+ - composer require php-coveralls/php-coveralls
+
+script:
+ - rm -rf build/
+ - mkdir -p build/logs
+ - echo "Starting php lint check for php files"
+ - php -l src/VideoFormats.php
+ - php -l tests/bootstrap.php
+ - php -l tests/StackTest.php 
+ - php -l tests/GetAvailableVideoFormatsTest.php
+ - php -l generateVideo.php
+ - php -l getAvailableVideoFormats.php
+ - php -l getAvailableVideoFormatsThroughApi.php
+ - echo "PHP lint check completed successfully"
+ - phpunit --configuration phpunit.xml
+
+after_success:
+ - travis_retry php vendor/bin/php-coveralls -v
+ - echo $MESSAGE >> build/build.log
+
+deploy:
+ provider: releases
+ api_key: $GITHUB_TOKEN
+ file_glob: true
+ file: build/**/*
+ skip_cleanup: true
+ on:
+    tags: true
