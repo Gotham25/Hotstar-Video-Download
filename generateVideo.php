@@ -149,7 +149,7 @@ function sendProgressToClient($progress, $ipAddr_userAgent)
     
     $message['message'] = $progress;
     
-    $pusher->trigger('test-hotstar-video-download1', $ipAddr_userAgent, $message);
+    $pusher->trigger('hotstar-video-download-v1', $ipAddr_userAgent, $message);
     
 }
 
