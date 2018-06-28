@@ -1,34 +1,24 @@
 <?php
 
-	$action = $_POST['action'];
-	
-	switch($action){
-		case 'downloadVideo': $videoUrl=$_POST['url'];
-		                      $fetchVideoScriptQuery = "php fetchVideo.php ".$videoUrl;
+if (!isset($_GET['videoId'])) {
+    die('Invalid invocation of file');
+}
 
-                          $result="Invalid Response";
-   
-                          while(stripos($result,"Invalid")!==false){
-                            $result=exec($fetchVideoScriptQuery);
-                          }
-                          
-                          exec("cp /app/files.tar.gz /app/");
-                          exec("tar xvzf files.tar.gz");
-                          $videoStreamQuery = "./ffmpeg -i \"".$result."\" -c copy Video.ts";
-                          exec($videoStreamQuery);
+$filename = $_GET['videoId'] . ".zip";
+$filepath = "/app/";
 
-                          
-                          $filePath = "/app/Downloads/";
-                          
-                          mkdir($filePath, 0777, true);
-                          exec("zip -9 -v -T -m -j /app/Downloads/Video.zip /app/Video.ts");
-                          
-                          echo "done";
+// http headers for zip downloads 
 
-				                     break;
-				                    
-		default: echo "Invalid script invocation";
-		         die("Invalid script invocation");
-	}
-	
+header("Pragma: public");
+header("Expires: 0");
+header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
+header("Cache-Control: public");
+header("Content-Description: File Transfer");
+header("Content-type: application/zip, application/octet-stream");
+header("Content-Disposition: attachment; filename=\"" . $filename . "\"");
+header("Content-Transfer-Encoding: binary");
+header("Content-Length: " . filesize($filepath . $filename));
+ob_end_flush();
+@readfile($filepath . $filename);
+
 ?>
