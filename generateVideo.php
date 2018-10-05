@@ -8,6 +8,7 @@ if (isset($_POST['src'])) {
     $src = $_POST['src'];
     
     exec("chmod a+rx youtube-dl");
+	exec("./youtube-dl --update");
     exec("tar xvzf files.tar.gz");
     exec("chmod +x ffmpeg");
     
