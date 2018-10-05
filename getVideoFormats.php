@@ -18,6 +18,7 @@ if ($splitCount > 0) {
     exec("cp /app/youtube-dl /app/hs");
     
     exec("chmod a+rx youtube-dl");
+	exec("./youtube-dl --update");
     
     $process = new Process($formatsQuery);
     $process->start();
