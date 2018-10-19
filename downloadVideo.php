@@ -5,7 +5,7 @@ if (!isset($_GET['videoId'])) {
 }
 
 $filename = $_GET['videoId'] . ".zip";
-$filepath = "/app/";
+$absoluteFilePath = getcwd() . DIRECTORY_SEPARATOR . $filename;
 
 // http headers for zip downloads 
 
@@ -17,8 +17,8 @@ header("Content-Description: File Transfer");
 header("Content-type: application/zip, application/octet-stream");
 header("Content-Disposition: attachment; filename=\"" . $filename . "\"");
 header("Content-Transfer-Encoding: binary");
-header("Content-Length: " . filesize($filepath . $filename));
+header("Content-Length: " . filesize($absoluteFilePath));
 ob_end_flush();
-@readfile($filepath . $filename);
+@readfile($absoluteFilePath);
 
 ?>
