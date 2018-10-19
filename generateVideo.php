@@ -22,9 +22,8 @@ if (isset($_POST['src'])) {
     if ($src === "ydl") {
         
         $videoFormat = $_POST['videoFormat'];
-        
-        
-        $downloadVideoAndZipQuery = "./youtube-dl -f " . $videoFormat . " --playlist-items " . $playlistId . " " . $videoUrl . " --add-metadata --ffmpeg-location /app/ffmpeg --no-warnings --exec 'zip -D -m -9 -v " . $videoId . ".zip {}'";
+        $ffmpegLocation = getcwd() . DIRECTORY_SEPARATOR . "ffmpeg"
+        $downloadVideoAndZipQuery = "./youtube-dl -f " . $videoFormat . " --playlist-items " . $playlistId . " " . $videoUrl . " --add-metadata --ffmpeg-location ". $ffmpegLocation ." --no-warnings --exec 'zip -D -m -9 -v " . $videoId . ".zip {}'";
         
         $process = new Process($downloadVideoAndZipQuery);
         $process->setTimeout(30 * 60); //wait for atleast dyno inactivity time for the process to complete
