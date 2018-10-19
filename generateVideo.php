@@ -21,7 +21,7 @@ if (isset($_POST['src'])) {
     if ($src === "ydl") {
         
         $videoFormat = $_POST['videoFormat'];
-        $ffmpegLocation = getcwd() . DIRECTORY_SEPARATOR . "ffmpeg"
+        $ffmpegLocation = getcwd() . DIRECTORY_SEPARATOR . "ffmpeg";
         $downloadVideoAndZipQuery = "./youtube-dl -f " . $videoFormat . " --playlist-items " . $playlistId . " " . $videoUrl . " --add-metadata --ffmpeg-location ". $ffmpegLocation ." --no-warnings --exec 'zip -D -m -9 -v " . $videoId . ".zip {}'";
         
         $process = new Process($downloadVideoAndZipQuery);
