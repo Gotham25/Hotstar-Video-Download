@@ -15,8 +15,6 @@ if ($splitCount > 0) {
     
     $formatsQuery = "./youtube-dl -F " . $videoUrl;
     
-    exec("cp /app/youtube-dl /app/hs");
-    
     exec("chmod a+rx youtube-dl");
 	exec("./youtube-dl --update");
     
