@@ -9,7 +9,6 @@ if (isset($_POST['src'])) {
     
     exec("chmod a+rx youtube-dl");
 	exec("./youtube-dl --update");
-    exec("tar xvzf files.tar.gz");
     exec("chmod +x ffmpeg");
     
     $ipAddr_userAgent = $_POST['uniqueId'];
