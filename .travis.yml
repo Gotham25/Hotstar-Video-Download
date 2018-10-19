@@ -14,11 +14,13 @@ install:
  - curl -s http://getcomposer.org/installer | php
  - php composer.phar install --dev --no-interaction
  - composer require php-coveralls/php-coveralls
- - php installBinaries.php
 
 script:
  - rm -rf build/
  - mkdir -p build/logs
+ - echo "Preparing to download binaries for testing src code"
+ - php installBinaries.php
+ - echo "Binaries downloaded successfully"
  - echo "Starting php lint check for php files"
  - php -l src/VideoFormats.php
  - php -l tests/bootstrap.php
