@@ -20,7 +20,6 @@
 		  
 		  exec("chmod a+rx youtube-dl");
 		  exec("./youtube-dl --update");
-		  exec("tar xvzf files.tar.gz");
 		  
 		  $downloadVideoAndZipQuery = "./youtube-dl -f ".$videoFormat." --playlist-items ".$playlistId." ".$videoUrl." --add-metadata --ffmpeg-location /app/ffmpeg --no-warnings --exec 'zip -D -m -9 -v ".$videoId.".zip {}'";
 		  
