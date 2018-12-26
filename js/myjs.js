@@ -84,7 +84,7 @@ $(document).ready(function() {
           	   
           }else{
           	   //alert("no video found");
-          	   showErrorDialog("Video not found in the playlist");
+          	   showErrorDialog(data["errorMessage"]);
           }
           
         }, "json");
