@@ -1,5 +1,8 @@
 <?php
 
+require 'vendor/autoload.php';
+use Symfony\Component\Process\Process;
+
 class VideoFormats
 {
     
@@ -11,7 +14,21 @@ class VideoFormats
     
     public function isAvailable($videoUrl)
     {
-        $output = shell_exec("./youtube-dl -j --flat-playlist " . $videoUrl);
+		$ydlLocation = getcwd() . DIRECTORY_SEPARATOR . "youtube-dl";
+		
+		$process = new Process(array($ydlLocation, "--restrict-filenames", "-j", "--flat-playlist", $videoUrl));
+		
+		$process->start();
+		
+		while ($process->isRunning()) {
+           // waiting for process to finish
+        }
+		
+		$output = $process->getOutput();
+		
+        $errorOutput = $process->getErrorOutput();
+		
+        //$output = shell_exec("./youtube-dl -j --flat-playlist " . $videoUrl);
         
         $endCurlySearch = '}
 		]';
@@ -65,10 +82,17 @@ class VideoFormats
                     $formats[$value[1]] = $value[2];
                 }
             } else {
-                $formats["errorMessage"] = "Error in fetching video formats for the given URL";
+				$formats['playlistId'] = $playlistId;
+                $formats["errorMessage"] = $errorOutput;
             }
             
-        } else {
+        } else{
+			$formats['playlistId'] = -1;
+			$formats["errorMessage"] = $errorOutput;
+		} 
+		
+		
+		/* else {
             
             //$formats["errorMessage"]="Can't fetch video ID or Invalid URL";
             //Fetching video formats and url through api request
@@ -103,7 +127,7 @@ class VideoFormats
                     }
                 }
             }
-        }
+        } */
         
         return $formats;
         
