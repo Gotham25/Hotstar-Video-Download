@@ -5,7 +5,7 @@ include('src/VideoFormats.php');
 class GetAvailableVideoFormatsTest extends TestCase
 {
     
-    public function testGetFormatsThroughYdl()
+    public function testGetFormatsThroughYdl_normalVideo()
     {
         
         $videoFormats = new VideoFormats();
@@ -30,8 +30,24 @@ class GetAvailableVideoFormatsTest extends TestCase
         $expected['hls-4694']   = "1920x1080";
         
         $this->assertEquals($expected, $response);
-        
     }
+	
+	public function testGetFormatsThroughYdl_DRMProtectedVideo()
+    {
+        
+        $videoFormats = new VideoFormats();
+        $videoUrl     = "https://www.hotstar.com/sports/cricket/vivo-ipl-2018/mumbai-indians-vs-chennai-super-kings-m186490/match-clips/2018-match-1-mi-vs-csk/2001705598";
+        $response     = $videoFormats->isAvailable($videoUrl);
+        
+        $expected               = array();
+        $expected['status']     = "false";
+        $expected['errorMessage'] = "ERROR: This video is DRM protected.
+";
+		$expected['playlistId'] = -1;
+		
+        $this->assertEquals($expected, $response);
+    }
+	
     
 	//TODO: Need to fix the workaround when ydl isn't available for the gievn URL
     /* public function testGetFormatsThroughApi()
