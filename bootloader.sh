@@ -8,7 +8,7 @@ wget -q https://github.com/vot/ffbinaries-prebuilt/releases/download/v4.1/ffmpeg
 RESULT=$?
 if [ $RESULT -ne 0 ]; then
 	echo "Cannot download FFMPEG latest release from https://ffbinaries.com site"
-	exit 1 # terminate and indicate error
+	exit 11 # terminate and indicate error
 fi
 echo "Downloaded ffmpeg static build extract and saved it as $FFMPEG_BUILD_NAME"
 
@@ -17,7 +17,7 @@ wget -q https://github.com/vot/ffbinaries-prebuilt/releases/download/v4.1/ffprob
 RESULT=$?
 if [ $RESULT -ne 0 ]; then
 	echo "Cannot download FFPROBE latest release from https://ffbinaries.com site"
-	exit 1 # terminate and indicate error
+	exit 12 # terminate and indicate error
 fi
 echo "Downloaded ffprobe static build extract and saved it as $FFPROBE_BUILD_NAME"
 
@@ -27,7 +27,7 @@ unzip -q -o -j $FFMPEG_BUILD_NAME "ffmpeg"
 RESULT=$?
 if [ $RESULT -ne 0 ]; then
 	echo "Error occurred in extracting $FFMPEG_BUILD_NAME"
-	exit 2 # terminate and indicate error
+	exit 21 # terminate and indicate error
 fi
 echo "Extraction completed successfully"
 
@@ -40,7 +40,7 @@ unzip -q -o -j $FFPROBE_BUILD_NAME "ffprobe"
 RESULT=$?
 if [ $RESULT -ne 0 ]; then
 	echo "Error occurred in extracting $FFPROBE_BUILD_NAME"
-	exit 2 # terminate and indicate error
+	exit 22 # terminate and indicate error
 fi
 echo "Extraction completed successfully"
 

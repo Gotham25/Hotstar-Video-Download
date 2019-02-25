@@ -46,18 +46,17 @@ var pusherEventCallback = function(event){
 	var videoId = message['videoId'];
 	var msg = message['msg'];
 	var videoFileName = videoId + ".zip";
-	//console.log("msg : \n"+msg);
 	var consoleElement = document.querySelector('#responseText');
-	//if (typeof consoleElement != "undefined" && consoleElement != null){
-		//consoleElement.innerHTML += data+"<br/>";
-		//consoleElement.scrollTop = consoleElement.scrollHeight;
-		serverConsoleOutput += data+"<br/>";
+	
+	serverConsoleOutput += data+"<br/>";
+	
+	populateCompletionProgress(data);
+	
+	if(data.indexOf('Video generation complete') != -1){
 		
-		populateCompletionProgress(data);
+		showSuccessDialog("Video generation complete");
 		
-		if(data.indexOf('Video generation complete') != -1){
-			showSuccessDialog("Video generation complete");
-			var generationElement = document.querySelector('#videoGeneration');
+		var generationElement = document.querySelector('#videoGeneration');
 			if (typeof generationElement != undefined){
 				generationElement.remove();
 			}
@@ -70,70 +69,67 @@ var pusherEventCallback = function(event){
 			document.getElementById("dLink").href="downloadVideo.php?videoId="+videoId;
 			
 			document.getElementById("dbLink").addEventListener("click", function(){
-				// var msg = "Upload video to dropbox function invoked";
-				// console.log(msg);
-				// alert(msg);
 				
 				var isDropboxUploadDialogShown = false;
 				var options = {
-						files: [],
-
-						// Success is called once all files have been successfully added to the user's
-						// Dropbox, although they may not have synced to the user's devices yet.
-						success: function () {
-							// Indicate to the user that the files have been saved.
-							//alert("Success! Files saved to your Dropbox.");
-							console.debug("Success! Files saved to your Dropbox.");
-							Swal.close();
-							isDropboxUploadDialogShown = false;
+					
+					files: [],
+					
+					// Success is called once all files have been successfully added to the user's
+					// Dropbox, although they may not have synced to the user's devices yet.
+					success: function () {
+						// Indicate to the user that the files have been saved.
+						//alert("Success! Files saved to your Dropbox.");
+						console.debug("Success! Files saved to your Dropbox.");
+						Swal.close();
+						isDropboxUploadDialogShown = false;
+						Swal.fire({
+							type: 'success',
+							title: "File "+videoFileName+" saved to Dropbox successfully",
+							allowOutsideClick: () => false,
+							showConfirmButton: false,
+							timer: 2000, //dismiss after 2 seconds
+						});
+					},
+					
+					// Progress is called periodically to update the application on the progress
+					// of the user's downloads. The value passed to this callback is a float
+					// between 0 and 1. The progress callback is guaranteed to be called at least
+					// once with the value 1.
+					progress: function (progress) {
+						console.debug("Dropbox file upload in progress....");
+						if(!isDropboxUploadDialogShown) {
+							isDropboxUploadDialogShown = true;
 							Swal.fire({
-								  type: 'success',
-								  title: "File "+videoFileName+" saved to Dropbox successfully",
-								  allowOutsideClick: () => false,
-								  showConfirmButton: false,
-								  timer: 2000, //dismiss after 2 seconds
-							 });
-						},
-
-						// Progress is called periodically to update the application on the progress
-						// of the user's downloads. The value passed to this callback is a float
-						// between 0 and 1. The progress callback is guaranteed to be called at least
-						// once with the value 1.
-						progress: function (progress) {
-							console.debug("Dropbox file upload in progress....");
-							if(!isDropboxUploadDialogShown) {
-								isDropboxUploadDialogShown = true;
-								Swal.fire({
-									title: 'Uploading file '+videoFileName+' to Dropbox',
-									allowOutsideClick: () => false,
-									onOpen: () => {
-										Swal.showLoading();
-									}
-								});
-							}
-						},
-
-						// Cancel is called if the user presses the Cancel button or closes the Saver.
-						cancel: function () {
-							//alert("Save to Dropbox cancelled.");
-							console.debug("Save to Dropbox cancelled.");
-							Swal.fire({
-								type: 'info',
-								title: 'Save to dropbox cancelled',
-								html: "<font size='3' color='black'>You have closed the save window without clicking save</font>",
-								allowOutsideClick: () => true,
-								showConfirmButton: false,
-								timer: 2000, //dismiss after 2 seconds
+								title: 'Uploading file '+videoFileName+' to Dropbox',
+								allowOutsideClick: () => false,
+								onOpen: () => {
+									Swal.showLoading();
+								}
 							});
-						},
-
-						// Error is called in the event of an unexpected response from the server
-						// hosting the files, such as not being able to find a file. This callback is
-						// also called if there is an error on Dropbox or if the user is over quota.
-						error: function (errorMessage) {
-							//alert("Error! Files not saved to your Dropbox.");
-							Swal.close();
-							isDropboxUploadDialogShown = false;
+						}
+					},
+					
+					// Cancel is called if the user presses the Cancel button or closes the Saver.
+					cancel: function () {
+						console.debug("Save to Dropbox cancelled.");
+						Swal.fire({
+							type: 'info',
+							title: 'Save to dropbox cancelled',
+							html: "<font size='3' color='black'>You have closed the save window without clicking save</font>",
+							allowOutsideClick: () => true,
+							showConfirmButton: false,
+							timer: 2000, //dismiss after 2 seconds
+						});
+					},
+					
+					// Error is called in the event of an unexpected response from the server
+					// hosting the files, such as not being able to find a file. This callback is
+					// also called if there is an error on Dropbox or if the user is over quota.
+					error: function (errorMessage) {
+						//alert("Error! Files not saved to your Dropbox.");
+						Swal.close();
+						isDropboxUploadDialogShown = false;
 							Swal.fire({
 								type: 'error',
 								allowOutsideClick: () => false,
@@ -156,53 +152,54 @@ var pusherEventCallback = function(event){
 					Cookies.expire('GoogleDriveAuthRedirectUri');
 					var popup = window.open("/oauthFetchGoogleDrive.php", "GoogleDriveAuthFetchWindow", 'width=800, height=600');
 					var googleDriveOAuthPollTimer = window.setInterval(function() {
-								var authorizationCode = Cookies.get('GoogleDriveAuthCode');
-								var authRedirectUri = Cookies.get('GoogleDriveAuthRedirectUri');
-								if(authorizationCode!==undefined && authRedirectUri!==undefined) {
-									//close opened popup window and clear cookies and googleDriveOAuthPollTimer
-									popup.close();
-									clearInterval(googleDriveOAuthPollTimer);
-									Cookies.expire('GoogleDriveAuthCode');
-									Cookies.expire('GoogleDriveAuthRedirectUri');
-									
-									Swal.fire({
-										title: 'Uploading file '+videoFileName+' to Google Drive',
-										allowOutsideClick: () => false,
-										onOpen: () => {
-											Swal.showLoading();
-										}
-									});
-									$.ajax({
-										url: "UploadToGoogleDrive.php",
-										type: "POST",
-										data: {
-											authCode: authorizationCode,
-											fileName: videoFileName,
-										},
-									}).done(function(data) {
-										Swal.close();
-										console.log("\nsuccess data : ");
-										console.log(data);
-										Swal({
-											  type: 'success',
-											  title: "File "+videoFileName+" saved to Google Drive successfully",
-											  allowOutsideClick: () => false,
-											  showConfirmButton: false,
-											  timer: 2000, //dismiss after 2 seconds
-										 });
-									}).fail(function(data) {
-										Swal.close();
-										console.log("\error data : ");
-										console.log(data);
-										Swal.fire({
-											type: 'error',
-											allowOutsideClick: () => false,
-											title: 'Error in uploading file '+videoFileName,
-											text: errorMessage,
-											footer: '',
-										});
-									});
+						var authorizationCode = Cookies.get('GoogleDriveAuthCode');
+						var authRedirectUri = Cookies.get('GoogleDriveAuthRedirectUri');
+						if(authorizationCode!==undefined && authRedirectUri!==undefined) {
+							//close opened popup window and clear cookies and googleDriveOAuthPollTimer
+							popup.close();
+							clearInterval(googleDriveOAuthPollTimer);
+							Cookies.expire('GoogleDriveAuthCode');
+							Cookies.expire('GoogleDriveAuthRedirectUri');
+							
+							Swal.fire({
+								title: 'Uploading file '+videoFileName+' to Google Drive',
+								allowOutsideClick: () => false,
+								onOpen: () => {
+									Swal.showLoading();
 								}
+							});
+							
+							$.ajax({
+								url: "UploadToGoogleDrive.php",
+								type: "POST",
+								data: {
+									authCode: authorizationCode,
+									fileName: videoFileName,
+								},
+							}).done(function(data) {
+								Swal.close();
+								console.log("\nsuccess data : ");
+								console.log(data);
+								Swal({
+									type: 'success',
+									title: "File "+videoFileName+" saved to Google Drive successfully",
+									allowOutsideClick: () => false,
+									showConfirmButton: false,
+									timer: 2000, //dismiss after 2 seconds
+								});
+							}).fail(function(data) {
+								Swal.close();
+								console.log("\error data : ");
+								console.log(data);
+								Swal.fire({
+									type: 'error',
+									allowOutsideClick: () => false,
+									title: 'Error in uploading file '+videoFileName,
+									text: errorMessage,
+									footer: '',
+								});
+							});
+						}
 					}, 10);	
 				}else{
 					Swal.fire({
@@ -229,31 +226,8 @@ var pusherEventCallback = function(event){
 			
 			document.getElementById("videoUploadContainer").style.display="block";
 			
-			
-			/* var dbContainer = document.getElementById("dbContainer");
-			
-			var dLinkElement = angular.element('<br/><label>Video Link has been generated below</label><br/><br/><label><a href="downloadVideo.php?videoId='+videoId+'">Click Here</a> to download</label>');
-			angular.element(dbContainer).append(dLinkElement);
-			var videoFileName = videoId + ".zip";
-			var options = {
-				files: [],
-				success: function () {
-					alert("File saved to your Dropbox successfully");
-				},
-				progress: function (progress) {
-					//console.log("Dropbox file upload progress : "+progress);
-				},
-				cancel: function () {
-					alert("Save to Dropbox cancelled.");
-				},
-				error: function (errorMessage) {
-					alert("Error occurred in saving your file to Dropbox.");
-				}
-			};
-			var dbSaveBtn = Dropbox.createSaveButton(pageUrl+videoFileName, videoFileName, options);
-			dbContainer.appendChild(dbSaveBtn); */
 		}
-	//}			
+				
 };
 
 var request = new XMLHttpRequest();
@@ -275,25 +249,23 @@ request.send();
 
 
 app.config(function($stateProvider, $urlRouterProvider) {
-	
-  // For any unmatched url, send to /route1
+	// For any unmatched url, send to /route1
 	$urlRouterProvider.otherwise(function($injector){
 		$injector.invoke(['$state', function($state) {
 			$state.go('route1', {}, { location: false } );
 		}]);
 	});
-  //$urlRouterProvider.otherwise("/route1", {}, { location: false });
-  
-  $stateProvider
-    .state('route1', {
-        url: "/route1",
-        templateUrl: "container1.html",
-        controller: "Controller1"
-    })
-    .state('route2', {
-        url: "/route2",
-        templateUrl: "container2.html",
-        controller: "Controller2",
+	
+	$stateProvider
+		.state('route1', {
+			url: "/route1",
+			templateUrl: "container1.html",
+			controller: "Controller1"
+		})
+		.state('route2', {
+			url: "/route2",
+			templateUrl: "container2.html",
+			controller: "Controller2",
 		params: {
 			'url': '',
 			'videoFormats': {},
@@ -322,6 +294,7 @@ app.controller("Controller1", function($scope, $state, $http, $timeout) {
 		jQuery('head').append('<script type="text/javascript" src="https://www.dropbox.com/static/api/2/dropins.js" id="dropboxjs" data-app-key="'+dbKey+'"></script>');
 	});
 	
+	//handle enter press key event
 	$scope.isEnter = function (event) {
 		var keyPressed = event.which || event.keyCode || event.key;
 		if(keyPressed == 13 || keyPressed == "Enter") {
@@ -329,41 +302,34 @@ app.controller("Controller1", function($scope, $state, $http, $timeout) {
 			event.preventDefault();
 		}
 	}
-
-  $scope.fetchFormats = function() {
 	
-	var videoUrl = $scope.urlTextBox;
-	//console.log("videoUrl : "+videoUrl);
-	showLoading();
-			
-	$http({
-		url: 'getAvailableVideoFormats.php',
-		method: "POST",
-		data: 'url='+videoUrl,
-		headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-	})
-	.then(function(response) {
-		//success
-		stopLoading();
-		//console.log("Success : \n");
-		//console.log(response.data);
-		if(response.data.isError === false){
-			showSuccessDialog("Located video in the playlist for the given url"); 
-			$state.go("route2", {
-				url: videoUrl,
-				videoFormats: response.data,
-				videoId: response.data.videoId
-			}, { location: false });			
-		}else{
-			showErrorDialog(response.data.errorMessage);
-		}
+	$scope.fetchFormats = function() {
 		
-	},
-	function(response) { // optional
-		//console.log("Error : \n");
-		//console.log(response.data);
-		showErrorDialog(response.data);
-    });
+		var videoUrl = $scope.urlTextBox;
+		showLoading();
+		$http({
+			url: 'getAvailableVideoFormats.php',
+			method: "POST",
+			data: 'url='+videoUrl,
+			headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+		}).then(
+			function(response) {
+				//success
+				stopLoading();
+				if(response.data.isError === false){
+					showSuccessDialog("Located video in the playlist for the given url"); 
+					$state.go("route2", {
+						url: videoUrl,
+						videoFormats: response.data,
+						videoId: response.data.videoId
+					}, { location: false });
+				}else{
+					showErrorDialog(response.data.errorMessage);
+				}
+			},
+			function(response) { // error
+				showErrorDialog(response.data);
+		});
     
     
   };
@@ -372,79 +338,53 @@ app.controller("Controller1", function($scope, $state, $http, $timeout) {
 
 app.controller("Controller2", function($scope, $state, $stateParams, $http, $timeout) {
 	$scope.videoFormats = $stateParams.videoFormats;
-	//console.log("$stateParams.videoFormats : ");
 	video_Formats = $stateParams.videoFormats;
-	//console.log("stateParams_videoFormats="+video_Formats);
 	
 	$scope.filterVideoFormats = function(items) {
-    var filteredVideoFormats = {};
-	//console.log("items : ");
-	//console.log(items);
-    angular.forEach(items, function(value, key) {
-        if (key.startsWith('hls-')) {
-            filteredVideoFormats[key] = value;
-        }
-    });
-    
-    return filteredVideoFormats;
-}
+		var filteredVideoFormats = {};
+		angular.forEach(items, function(value, key) {
+			if (key.startsWith('hls-')) {
+				filteredVideoFormats[key] = value;
+			}
+		});
+		return filteredVideoFormats;
+	}
 	
 	$scope.onFormatChange = function() {
 		var element = document.getElementById("defFormat");
 		if (typeof element != "undefined" && element != null)
 			element.remove();
-		//alert("Format selected : "+$scope.selectedFormat);
-		//console.log("selected format : "+$scope.selectedFormat);
-		//console.log("stream url : "+$stateParams.videoFormats[$scope.selectedFormat]["STREAM-URL"]);
 	};
 	
 	$scope.generateVideo = function(){
-				
 		var encodedStreamUrl = encodeURIComponent($stateParams.videoFormats[$scope.selectedFormat]["STREAM-URL"]);
-		//console.log("encodedStreamUrl : "+encodedStreamUrl);
-		
-		 $http({
+		$http({
 			url: 'generateVideo.php',
 			method: "POST",
 			data: 'videoUrl=' + $stateParams.url +
-			'&streamUrl=' + encodedStreamUrl +
-			'&videoMetadata=' + JSON.stringify($stateParams.videoFormats["metadata"]) +
-			'&videoId=' + $stateParams.videoId +
-			'&videoFormat=' + $scope.selectedFormat +
-			'&uniqueId=' + ipAddr_userAgent,
+				'&streamUrl=' + encodedStreamUrl +
+				'&videoMetadata=' + JSON.stringify($stateParams.videoFormats["metadata"]) +
+				'&videoId=' + $stateParams.videoId +
+				'&videoFormat=' + $scope.selectedFormat +
+				'&uniqueId=' + ipAddr_userAgent,
 			headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-		})
-		.then(function(response) {
-			console.log("generateVideo request completed successfully "+response.data);
-			
-			$state.go("route3", {
-				videoId: $stateParams.videoId
-			}, { location: false });
-			
-		},
-		function(response) { // optional
-			console.error("Error occured in generateVideo request completion");
+		}).then(
+			function(response) {
+				console.log("generateVideo request completed successfully "+response.data);
+				$state.go("route3", {
+					videoId: $stateParams.videoId
+				}, { location: false });
+			},
+			function(response) { // optional
+				console.error("Error occured in generateVideo request completion");
 		}); 
-		
-		
-		//alert("Generate video request invoked");
-		
 	};
-	
-	
 });
 
-
 app.controller("Controller3", function($scope, $stateParams, $http, $timeout) {
-	
 	jQuery(".my-progress-bar").circularProgress(cProgressOptions);
 	
-	$scope.consoleVisibility = false;
-	$scope.showHideText = "Show Console";
-	
 	$scope.showHideConsole = function(){
-		//$scope.consoleVisibility = !$scope.consoleVisibility;
-		//$scope.showHideText = $scope.consoleVisibility ? "Hide Console" : "Show Console";
 		Swal.fire({
 			title: "<i>Console output</i>",
 			html: "<div style='width: 465px; height: 800px; background-color: black; color: white; overflow-x: auto; overflow-y: auto; max-width: 640px; max-height: 320px; font-size: 15px;'>"+serverConsoleOutput+"</div>", 
@@ -454,9 +394,7 @@ app.controller("Controller3", function($scope, $stateParams, $http, $timeout) {
 			cancelButtonText: "Dismiss",
 		}).then((result)=> {
 			if(result.value != undefined && result.value==true){
-				
-				var fileName = "ServerLog_"+$stateParams.videoId+".txt";
-
+				var fileName = "Server_Log_"+$stateParams.videoId+"__"+new Date().getTime()+".txt";
 				var downloadLogElement = document.createElement('a');
 				downloadLogElement.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(serverConsoleOutput.replace(/<br\s?\/>/gi, '')));
 				downloadLogElement.setAttribute('download', fileName);

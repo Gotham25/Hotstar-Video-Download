@@ -8,7 +8,6 @@ function downloadCurlCertificates() {
 	}
 }
 
-
 function request($url, $headers) {
 	$ch = curl_init();
 
@@ -19,7 +18,6 @@ function request($url, $headers) {
 	curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
 	curl_setopt($ch, CURLOPT_CAINFO, "cacert.pem");
 	curl_setopt($ch, CURLOPT_CAPATH, "cacert.pem");
-	//curl_setopt($ch, CURLOPT_USERAGENT, 'curl/7.61.1');
 	
 	curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
@@ -31,6 +29,5 @@ function request($url, $headers) {
 
 	return $result;
 }
-
 
 ?>
