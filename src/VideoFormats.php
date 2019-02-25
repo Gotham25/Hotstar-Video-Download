@@ -81,7 +81,7 @@
 						$metaData[$contentName]=$contentValue;
 						break;
 				
-				//below meta-data ay/may nt be honored by ffmpeg
+				//below meta-data may/may not be honored by ffmpeg
 		         case "channelName": 
 		                  $metaData["copyright"]="©copyright ".$contentValue;
 		                  break;

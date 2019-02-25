@@ -2,6 +2,8 @@
 require 'vendor/autoload.php';
 use Symfony\Component\Process\Process;
 
+ini_set("max_execution_time", 30 * 60); //increase the max_execution_time to max of dyno inactivity time interval
+
 if (isset($_POST['videoUrl']))
 {
 	$videoUrl = $_POST['videoUrl'];
