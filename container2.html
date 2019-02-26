@@ -1,0 +1,7 @@
+<div>
+	<select ng-model="selectedFormat" ng-options="key as key+' '+value.RESOLUTION for (key , value) in filterVideoFormats(videoFormats)" ng-change="onFormatChange()">
+		<option id="defFormat" value="" disabled="disabled" selected="selected">Select a format</option>
+	</select>
+	<br/><br/>
+	<a href="" class="square_btn" ng-click="generateVideo()">Generate Video</a>
+</div>

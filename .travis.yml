@@ -18,17 +18,17 @@ install:
 script:
  - rm -rf build/
  - mkdir -p build/logs
- - echo "Preparing to download binaries for testing src code"
- - php installBinaries.php
  - echo "Binaries downloaded successfully"
  - echo "Starting php lint check for php files"
- - php -l src/VideoFormats.php
- - php -l tests/bootstrap.php
- - php -l tests/StackTest.php 
- - php -l tests/GetAvailableVideoFormatsTest.php
- - php -l generateVideo.php
- - php -l getAvailableVideoFormats.php
- - php -l getAvailableVideoFormatsThroughApi.php
+ - php -l src/VideoFormats.php >> build/logs/lint_check.log
+ - php -l src/helper/hotstarauthgenerator.php >> build/logs/lint_check.log
+ - php -l src/helper/request.php >> build/logs/lint_check.log
+ - php -l getAvailableVideoFormats.php >> build/logs/lint_check.log
+ - php -l generateVideo.php >> build/logs/lint_check.log
+ - php -l downloadVideo.php >> build/logs/lint_check.log
+ - php -l getConfigVars.php >> build/logs/lint_check.log
+ - php -l tests/bootstrap.php >> build/logs/lint_check.log
+ - php -l tests/VideoFormatsTest.php >> build/logs/lint_check.log
  - echo "PHP lint check completed successfully"
  - phpunit --configuration phpunit.xml
 

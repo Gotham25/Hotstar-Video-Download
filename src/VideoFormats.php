@@ -1,194 +1,226 @@
 <?php
+	
+	class VideoFormats
+	{
+		private $videoUrl;
+		private $playbackUri;
+		private $appState;
+		private $appStateJson;
+		private $headers;
+		private $playbackUrlData;
+		
+		public function __construct($videoUrl) {
+			//include all files under helper package
+			foreach (glob("src/helper/*.php") as $helperFile) {
+				include_once $helperFile;
+			}
 
-require 'vendor/autoload.php';
-use Symfony\Component\Process\Process;
-
-class VideoFormats
-{
-    
-    public function __construct()
-    {
-        exec("chmod a+rx youtube-dl");
-    }
-    
-    
-    public function isAvailable($videoUrl)
-    {
-		$ydlLocation = getcwd() . DIRECTORY_SEPARATOR . "youtube-dl";
-		
-		$process = new Process(array($ydlLocation, "--restrict-filenames", "-j", "--flat-playlist", $videoUrl));
-		
-		$process->start();
-		
-		while ($process->isRunning()) {
-           // waiting for process to finish
-        }
-		
-		$output = $process->getOutput();
-		
-        $errorOutput = $process->getErrorOutput();
-		
-        //$output = shell_exec("./youtube-dl -j --flat-playlist " . $videoUrl);
-        
-        $endCurlySearch = '}
-		]';
-        
-        $endCurlyReplace = '}]';
-        
-        $output = str_replace($endCurlySearch, $endCurlyReplace, "[" . $output . "]");
-        
-        $jsonOutput = str_replace(", ]", "]", str_replace("\n", ", ", $output));
-        
-        $jsonArray = json_decode($jsonOutput, true);
-        
-        $modifiedVideoUrl = $videoUrl;
-        
-        if (strcasecmp($videoUrl[strlen($videoUrl) - 1], "/") === 0) {
-            //Remove the '/' in the end of url if present
-            $modifiedVideoUrl = substr($modifiedVideoUrl, 0, -1);
-        }
-        
-        $modifiedVideoUrlArray = preg_split('/\//', $modifiedVideoUrl);
-        
-        $videoId      = end($modifiedVideoUrlArray);
-        $availability = 'false';
-        $playlistId   = 0;
-        $formats      = array();
-        
-        if (!is_numeric($videoId)) {
-            $formats["status"]       = $availability;
-            $formats["errorMessage"] = "Invalid video ID fetched from URL";
-        } else {
-            foreach ($jsonArray as $key => $value) {
-                if (strcmp($videoId, strval($value['id'])) == 0) {
-                    $availability = 'true';
-                    $playlistId   = $key + 1;
-                    break;
-                }
-            }
-            $formats['status'] = $availability;
-        }
-        
-        if ($availability === 'true') {
-            
-            //Fetch available video formats
-            $formats['source']     = "ydl";
-            $formats['videoId']    = $videoId;
-            $formats['playlistId'] = $playlistId;
-            $formatsQuery          = "./youtube-dl -F " . $videoUrl . " --playlist-items " . $playlistId;
-            $formatsBuffer         = shell_exec($formatsQuery);
-            if (preg_match_all("/(hls-[0-9]+)[\s]*mp4[\s]*([0-9]+x[0-9]+)/", $formatsBuffer, $formatsResult, PREG_SET_ORDER)) {
-                foreach ($formatsResult as $key => $value) {
-                    $formats[$value[1]] = $value[2];
-                }
-            } else {
-				$formats['playlistId'] = $playlistId;
-                $formats["errorMessage"] = $errorOutput;
-            }
-            
-        } else{
-			$formats['playlistId'] = -1;
-			$formats["errorMessage"] = $errorOutput;
-		} 
-		
-		
-		/* else {
-            
-            //$formats["errorMessage"]="Can't fetch video ID or Invalid URL";
-            //Fetching video formats and url through api request
-            
-            $result = "Invalid Response";
-            $tries  = 0;
-            
-            //Try to fetch the stream url for the given video URL for a certain time
-            while (stripos($result, "Invalid") !== false) {
-                $result = $this->getFormatsThroughApi($videoUrl);
-                //echo "\ntries #".($tries+1)." api result : ".$result;
-                if (++$tries > 100) {
-                    break;
-                }
-            }
-            
-            if (stripos($result, "Invalid") !== false) {
-                $formats['status']       = 'false';
-                $formats["errorMessage"] = "Can't fetch video ID or Invalid URL";
-            } else {
-                $formats['status']        = 'true';
-                $metadata                 = json_decode($result, true);
-                $formats['source']        = "api";
-                $formats['videoId']       = $metadata['videoId'];
-                $formats['episodeNumber'] = $metadata['episodeNumber'];
-                $formats['title']         = $metadata['episode'];
-                $formats['description']   = $metadata['description'];
-                
-                foreach ($metadata as $key => $value) {
-                    if (stripos($key, "hls") !== false) {
-                        $formats[$key] = $value;
-                    }
-                }
-            }
-        } */
-        
-        return $formats;
-        
-    }
-    
-    public function getFormatsThroughApi($videoUrl)
-    {
-        $url  = 'http://en.fetchfile.net/fetch/';
-        //echo "\nvideoUrl : ".$videoUrl;
-        $data = array(
-            'url' => $videoUrl,
-            'action' => 'homePure'
-        );
-        
-        $options = array(
-            'http' => array(
-                'header' => "Content-type: application/x-www-form-urlencoded\r\n",
-                'method' => 'POST',
-                'content' => http_build_query($data)
-            )
-        );
-        
-        $context = stream_context_create($options);
-        
-        $result = file_get_contents($url, false, $context);
-        
-        if ($result === FALSE) {
-            /* Handle error */
-        }
-        
-        $jsonResponse = json_decode($result, true);
-        
-		if(!isset($jsonResponse['formats'])){
-			return "Invalid Response. Please wait...";
+			$this->videoUrl = $videoUrl;
+			$this->playbackUri = null;
+			$this->appState = null;
+			$this->appStateJson = null;
+			$this->headers   = array();
+			$this->headers[] = 'Hotstarauth: ' . generateHotstarAuth();
+			$this->headers[] = 'X-Country-Code: IN';
+			$this->headers[] = 'X-Platform-Code: JIO'; 
 		}
-        
-        $formats = $jsonResponse['formats'];
-        
-        if ($formats != null) {
-            
-            $videoMetadata   = array();
-            $fetchedVideoUrl = "";
-            
-            $videoMetadata['videoId']         = $jsonResponse['display_id'];
-            $videoMetadata['episode']         = $jsonResponse['episode'];
-            $videoMetadata['episodeNumber']   = $jsonResponse['episode_number'];
-            $videoMetadata['description']     = $jsonResponse['description'];
-            $videoMetadata['hasVideoFormats'] = 'false';
-            
-            foreach ($formats as $item) {
-                $videoMetadata['hasVideoFormats'] = 'true';
-                $videoMetadata[$item['format']]   = $item['url'];
-            }
-            
-            return json_encode($videoMetadata);
-            
-        } else {
-            return "Invalid Response. Please wait...";
-        }
-    }
-    
-}
+		
+		private function isValidHotstarUrl() {
+			
+			if(preg_match('/((https?:\/\/)?(www\.)?)?hotstar.com\/(?:.+?[\/-])+(?P<videoId>\d{10})([\/|\w]*)/', $this->videoUrl, $match)){
+				return $match["videoId"];
+			}
+
+			return "";
+		}
+
+		private function getKForm($num) {
+		    if($num < 1000){
+		        return $num;
+		    }
+
+		    return intval($num/1000);
+		}
+		
+		private function getVideoMetadata($content) {
+		   $metaData = array();
+		   foreach ($content as $contentName => $contentValue) {
+		      
+		      switch($contentName) {
+				  
+				case "title":
+						$metaData[$contentName]=$contentValue;
+						break;
+				case "genre":
+						$metaData[$contentName]=$contentValue;
+						break;
+				case "description":
+						$metaData[$contentName]=$contentValue;
+						$metaData["synopsis"]=$contentValue;
+						$metaData["comment"]=$contentValue;
+						break;
+				case "actors":
+						$actors = "";
+						foreach($contentValue as $i => $actor) {
+							if(strlen($actors) !=0 ) {
+								$actors .= "/";
+							}
+							$actors .= $actor;
+						}
+						$metaData["artist"]=$actors;
+						$metaData["composer"]=$actors;
+						$metaData["album_artist"]=$actors;
+						break;
+				case "broadcastDate": 
+						date_default_timezone_set("Asia/Calcutta");
+						$metaData["creation_time"]="".date("Y-m-d H:i:s", $contentValue);
+						$metaData["year"]="".date("Y", $contentValue);
+						$metaData["date"]="".date("Y", $contentValue);
+						break;
+				case "drmProtected":
+						$metaData[$contentName]=$contentValue;
+						break;
+				
+				//below meta-data may/may not be honored by ffmpeg
+		         case "channelName": 
+		                  $metaData["copyright"]="©copyright ".$contentValue;
+		                  break;
+		         case "episodeNo": 
+		                  $metaData["episode_id"]=$contentValue;
+		                  $metaData["track"]=$contentValue;
+		                  break;
+		         case "showName": 
+		                  $metaData["show"]=$contentValue;
+		                  break;
+		         case "seasonNo": 
+		                  $metaData["season_number"]=$contentValue;
+		                  break;
+		         case "playbackUri": 
+		                  $metaData[$contentName]=$contentValue;
+		                  break;
+		         default: 
+		                  //add nothing
+		                  break;
+		         }
+		   }
+		   
+		   return $metaData;
+		}
+
+		private function getUrlFormats($playbackUrl, $playbackUrlresponse) {
+			$url_formats = array();
+			$infoArray = null;
+			foreach ( preg_split("/((\r?\n)|(\r\n?))/", $playbackUrlresponse) as $line ) {
+			    if (substr($line, 0, 18) === "#EXT-X-STREAM-INF:") {
+			        $m3u8InfoCsv = str_replace("#EXT-X-STREAM-INF:", "", $line);
+			        $m3u8InfoArray = preg_split('/,(?=(?:[^"]*"[^"]*")*[^"]*$)/', $m3u8InfoCsv);
+			        foreach ($m3u8InfoArray as $m3u8Info) {
+			            if($infoArray === null){
+			                $infoArray = array();
+			            }
+			            $info = explode("=", $m3u8Info);
+			            $infoArray[ $info[0] ] = $info[1];
+			        }
+			    }elseif (substr($line, 0, 6) === "master" || substr($line, 0, 4) === "http") {
+			        
+			        $kFormAverageBandwidthOrBandwidth = $this->getKForm(isset($infoArray["AVERAGE-BANDWIDTH"]) ? $infoArray["AVERAGE-BANDWIDTH"] : $infoArray["BANDWIDTH"]);
+			        $formatCode = "hls-".$kFormAverageBandwidthOrBandwidth; //eg hls-281 for 281469
+			        $streamUrl = (substr($line, 0, 4) === "http") ? $line : str_replace("master.m3u8", $line, $playbackUrl); //if starts with http then it's direct url
+					if (strpos($streamUrl, '~acl=/*~hmac') === false) { //check if the url data contains hmac. If not, add it from playback url
+						$streamUrl .= "&".$this->playbackUrlData;
+					}
+					$infoArray["STREAM-URL"] = $streamUrl;
+
+			        $url_formats[$formatCode] = $infoArray;
+
+			        //Reset m3u8InfoArray for next layer
+			        $infoArray = null;
+			    }else {
+			        //do nothing
+			    }
+			}
+
+			return $url_formats;
+		}
+		
+		private function getPlaybackUrlData($playbackUrl) {
+			$playbackUrlDataPieces = explode("?", $playbackUrl);
+			return count($playbackUrlDataPieces) === 2 ? $playbackUrlDataPieces[1] : "";
+		}
+
+		public function getAvailableFormats() {
+			
+			$url_formats = array();
+			$videoMetadata = array();
+
+			try {
+				
+				//remove extra / at last if present
+				if( strrpos($this->videoUrl, "/") == strlen($this->videoUrl)-1 ) {
+				    $this->videoUrl = substr($this->videoUrl, 0, strlen($this->videoUrl)-1);
+				}
+				
+				$videoId = $this->isValidHotstarUrl();
+					
+				if(empty($videoId)) {
+					throw new Exception("Invalid Hotstar video URL");
+				}
+				
+				$metaDataRootKey = str_replace('hotstar.com', '', substr($this->videoUrl, strpos($this->videoUrl, 'hotstar.com')));
+				
+				$fileContents = file_get_contents($this->videoUrl);
+
+				if (preg_match('%<script>window.APP_STATE=(.*?)</script>%', $fileContents, $match)) {
+				    $this->appState = $match[1];
+				} else {
+					throw new Exception("APP_STATE JSON metadata not present in site");
+				}
+
+				if ($this->appState != null) {
+				    $this->appStateJson = json_decode($this->appState, true);
+				}
+				
+				foreach ($this->appStateJson as $key => $value) {
+
+				    $keyParts = explode("/", $key);
+					
+					if ($key == $metaDataRootKey || in_array($videoId, $keyParts)) {
+						
+						$videoMetadata = $this->getVideoMetadata($value["initialState"]["contentData"]["content"]);
+				    
+						if ($videoMetadata["drmProtected"]) {
+							$url_formats["isError"] = true;
+							$url_formats["errorMessage"] = "The video is DRM Protected";
+							return json_encode($url_formats, true);
+						}
+						
+				        $this->playbackUri = $videoMetadata["playbackUri"];
+				        break;
+				    }
+
+				}
+				$url = $this->playbackUri."&tas=10000";
+				$playbackUriResponse = request($url, $this->headers);
+				$playbackUriResponseJson = json_decode($playbackUriResponse, true);
+				if ($playbackUriResponseJson["statusCodeValue"] != 200) {
+					throw new Exception("Error processing request for playbackUri");
+				}
+				$playbackUrl = $playbackUriResponseJson["body"]["results"]["item"]["playbackUrl"];
+				$this->playbackUrlData = $this->getPlaybackUrlData($playbackUrl);
+				$playbackUrlresponse = request($playbackUrl, $this->headers);
+				$url_formats = $this->getUrlFormats($playbackUrl, $playbackUrlresponse);
+				$url_formats["metadata"]=$videoMetadata;
+				$url_formats["videoId"] = $videoId;
+				$url_formats["isError"] = false;
+
+			} catch (Exception $e) {
+				$url_formats["isError"] = true;
+				$url_formats["errorMessage"] = $e->getMessage();
+			}
+
+			return json_encode($url_formats, true);
+		}
+
+	}
 
 ?>
