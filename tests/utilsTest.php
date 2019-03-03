@@ -38,14 +38,9 @@
 
 		function testMakeGetRequest_InvalidUrlWithoutHeaders_ProducesErrorOutput()
 		{
-			$this->assertEquals("cURL error 7: Failed to connect to www.blah.com port 80: Timed out (see http://curl.haxx.se/libcurl/c/libcurl-errors.html)", make_get_request("www.blah.com"));
+			$this->assertEquals("cURL error 7: Failed to connect to www.blah.com port 80: Connection timed out (see http://curl.haxx.se/libcurl/c/libcurl-errors.html)", make_get_request("www.blah.com"));
 		}
-
-		/*function testMakeGetRequest_ValidUrlWithoutHeaders_ProducesCorrectOutput()
-		{
-			$this->assertEquals("new url", make_get_request("https://httpbin.org/get"));
-		}*/
-
+		
 		function testMakeGetRequest_ValidUrlWithHeaders_ProducesCorrectOutput()
 		{
 			$headers  = [
