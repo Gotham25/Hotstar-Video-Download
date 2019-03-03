@@ -12,17 +12,18 @@
 		public function __construct($videoUrl) {
 			//include all files under helper package
 			foreach (glob("src/helper/*.php") as $helperFile) {
-				include_once $helperFile;
+				require_once($helperFile);
 			}
 
 			$this->videoUrl = $videoUrl;
 			$this->playbackUri = null;
 			$this->appState = null;
 			$this->appStateJson = null;
-			$this->headers   = array();
-			$this->headers[] = 'Hotstarauth: ' . generateHotstarAuth();
-			$this->headers[] = 'X-Country-Code: IN';
-			$this->headers[] = 'X-Platform-Code: JIO'; 
+			$this->headers = [
+			   'Hotstarauth' => generateHotstarAuth(),
+			   'X-Country-Code' => 'IN',
+			   'X-Platform-Code' => 'JIO'
+			];
 		}
 		
 		private function isValidHotstarUrl() {
@@ -34,14 +35,6 @@
 			return "";
 		}
 
-		private function getKForm($num) {
-		    if($num < 1000){
-		        return $num;
-		    }
-
-		    return intval($num/1000);
-		}
-		
 		private function getVideoMetadata($content) {
 		   $metaData = array();
 		   foreach ($content as $contentName => $contentValue) {
@@ -106,42 +99,6 @@
 		   
 		   return $metaData;
 		}
-
-		private function getUrlFormats($playbackUrl, $playbackUrlresponse) {
-			$url_formats = array();
-			$infoArray = null;
-			foreach ( preg_split("/((\r?\n)|(\r\n?))/", $playbackUrlresponse) as $line ) {
-			    if (substr($line, 0, 18) === "#EXT-X-STREAM-INF:") {
-			        $m3u8InfoCsv = str_replace("#EXT-X-STREAM-INF:", "", $line);
-			        $m3u8InfoArray = preg_split('/,(?=(?:[^"]*"[^"]*")*[^"]*$)/', $m3u8InfoCsv);
-			        foreach ($m3u8InfoArray as $m3u8Info) {
-			            if($infoArray === null){
-			                $infoArray = array();
-			            }
-			            $info = explode("=", $m3u8Info);
-			            $infoArray[ $info[0] ] = $info[1];
-			        }
-			    }elseif (substr($line, 0, 6) === "master" || substr($line, 0, 4) === "http") {
-			        
-			        $kFormAverageBandwidthOrBandwidth = $this->getKForm(isset($infoArray["AVERAGE-BANDWIDTH"]) ? $infoArray["AVERAGE-BANDWIDTH"] : $infoArray["BANDWIDTH"]);
-			        $formatCode = "hls-".$kFormAverageBandwidthOrBandwidth; //eg hls-281 for 281469
-			        $streamUrl = (substr($line, 0, 4) === "http") ? $line : str_replace("master.m3u8", $line, $playbackUrl); //if starts with http then it's direct url
-					if (strpos($streamUrl, '~acl=/*~hmac') === false) { //check if the url data contains hmac. If not, add it from playback url
-						$streamUrl .= "&".$this->playbackUrlData;
-					}
-					$infoArray["STREAM-URL"] = $streamUrl;
-
-			        $url_formats[$formatCode] = $infoArray;
-
-			        //Reset m3u8InfoArray for next layer
-			        $infoArray = null;
-			    }else {
-			        //do nothing
-			    }
-			}
-
-			return $url_formats;
-		}
 		
 		private function getPlaybackUrlData($playbackUrl) {
 			$playbackUrlDataPieces = explode("?", $playbackUrl);
@@ -200,15 +157,16 @@
 
 				}
 				$url = $this->playbackUri."&tas=10000";
-				$playbackUriResponse = request($url, $this->headers);
+				$playbackUriResponse = make_get_request($url, $this->headers);
 				$playbackUriResponseJson = json_decode($playbackUriResponse, true);
 				if ($playbackUriResponseJson["statusCodeValue"] != 200) {
 					throw new Exception("Error processing request for playbackUri");
 				}
 				$playbackUrl = $playbackUriResponseJson["body"]["results"]["item"]["playbackUrl"];
 				$this->playbackUrlData = $this->getPlaybackUrlData($playbackUrl);
-				$playbackUrlresponse = request($playbackUrl, $this->headers);
-				$url_formats = $this->getUrlFormats($playbackUrl, $playbackUrlresponse);
+				$playbackUrlData = $this->getPlaybackUrlData($playbackUrl);
+				$playbackUrlresponse = make_get_request($playbackUrl, $this->headers);
+				$url_formats = parseM3u8Content($playbackUrlresponse, $playbackUrl, $playbackUrlData);
 				$url_formats["metadata"]=$videoMetadata;
 				$url_formats["videoId"] = $videoId;
 				$url_formats["isError"] = false;
