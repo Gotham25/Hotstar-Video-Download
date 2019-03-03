@@ -3,7 +3,7 @@
 function generateHotstarAuth() {
 	$st   = round(microtime(true));
 	$exp  = $st + 6000;
-	$auth = 'st=' . $st . '~exp=' . $exp . '~acl=/*';
+	$auth = "st=$st~exp=$exp~acl=/*";
 	$string = mb_convert_encoding($auth, "UTF-8");
 	$secret = array(
 	    0x05,
@@ -28,8 +28,8 @@ function generateHotstarAuth() {
 	for ($i = 0; $i < sizeof($secret); $i++) {
 	    $key .= chr($secret[$i]);
 	}
-	$sig = hash_hmac('sha256', $string, $key);
-	$auth .= '~hmac=' . $sig;
+	$sig = hash_hmac("sha256", $string, $key);
+	$auth .= "~hmac=" . $sig;
 	return $auth;
 }
 
