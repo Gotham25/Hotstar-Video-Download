@@ -20,15 +20,22 @@ script:
  - mkdir -p build/logs
  - echo "Binaries downloaded successfully"
  - echo "Starting php lint check for php files"
+ - php -l downloadVideo.php >> build/logs/lint_check.log
+ - php -l generateVideo.php >> build/logs/lint_check.log
+ - php -l getAvailableVideoFormats.php >> build/logs/lint_check.log
+ - php -l UploadToGoogleDrive.php >> build/logs/lint_check.log
  - php -l src/VideoFormats.php >> build/logs/lint_check.log
  - php -l src/helper/hotstarauthgenerator.php >> build/logs/lint_check.log
- - php -l src/helper/request.php >> build/logs/lint_check.log
- - php -l getAvailableVideoFormats.php >> build/logs/lint_check.log
- - php -l generateVideo.php >> build/logs/lint_check.log
- - php -l downloadVideo.php >> build/logs/lint_check.log
- - php -l getConfigVars.php >> build/logs/lint_check.log
+ - php -l src/helper/m3u8Parser.php >> build/logs/lint_check.log
+ - php -l src/helper/utils.php >> build/logs/lint_check.log
  - php -l tests/bootstrap.php >> build/logs/lint_check.log
+ - php -l tests/utilsTest.php >> build/logs/lint_check.log
  - php -l tests/VideoFormatsTest.php >> build/logs/lint_check.log
+ - php -l tests/m3u8ParserTest.php >> build/logs/lint_check.log
+ - php -l gdriveUpload.php >> build/logs/lint_check.log
+ - php -l getConfigVars.php >> build/logs/lint_check.log
+ - php -l oauthFetchGoogleDrive.php >> build/logs/lint_check.log
+ - php -l redirect_google.php >> build/logs/lint_check.log
  - echo "PHP lint check completed successfully"
  - phpunit --configuration phpunit.xml
 
