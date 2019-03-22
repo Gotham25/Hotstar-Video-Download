@@ -52,7 +52,7 @@ echo "Removed build extract $FFPROBE_BUILD_NAME"
 chmod +x ff*
 
 #adding them to path variables
-export PATH="$PATH:`pwd`/ffmpeg:`pwd`/ffprobe"
+export PATH="$PATH:$(pwd)/ffmpeg:$(pwd)/ffprobe"
 echo "FFMPEG and FFPROBE libs installed successfully"
 
 heroku-php-apache2  #start web server
