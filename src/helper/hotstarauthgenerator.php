@@ -1,9 +1,9 @@
 <?php
 
 function generateHotstarAuth() {
-	$st   = round(microtime(true));
-	$exp  = $st + 6000;
-	$auth = "st=$st~exp=$exp~acl=/*";
+	$startTime   = round(microtime(true));
+	$expiryTime  = $startTime + 6000;
+	$auth = "st=$startTime~exp=$expiryTime~acl=/*";
 	$string = mb_convert_encoding($auth, "UTF-8");
 	$secret = array(
 	    0x05,
