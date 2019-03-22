@@ -1,7 +1,7 @@
 <?php
 	require_once("utils.php");
 	
-	function getUrlFormats($infoArray, $line, $playbackUrl) {
+	function getUrlFormats($infoArray, $line, $playbackUrl, $playbackUrlData) {
 		$kFormAvgBwOrBw = getKForm( (int) (isset($infoArray["AVERAGE-BANDWIDTH"]) ? $infoArray["AVERAGE-BANDWIDTH"] : $infoArray["BANDWIDTH"]) );
 		$formatCode = "hls-$kFormAvgBwOrBw"; //eg hls-281 for 281469
 		$streamUrl = startsWith($line, "http") ? $line : str_replace("master.m3u8", $line, $playbackUrl); //if starts with http then it's direct url
@@ -38,7 +38,7 @@
 			} elseif (strpos($line, ".m3u8")) { //check if line has extension m3u8 anywhere
 
 				if(!empty($infoArray)){ //add info to urlFormats only if info array is not null (or) empty
-					$urlFormatsWithCode = getUrlFormats($infoArray, $line, $playbackUrl);
+					$urlFormatsWithCode = getUrlFormats($infoArray, $line, $playbackUrl, $playbackUrlData);
 					$urlFormats[$urlFormatsWithCode[0]] = $urlFormatsWithCode[1];
 				}
 
