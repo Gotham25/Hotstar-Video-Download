@@ -1,12 +1,12 @@
 {
- "require": { 
-    "pusher/pusher-php-server": "^3.2", 	
-    "symfony/process": "^4.2", 	
-    "google/apiclient": "^2.0", 	
-    "ext-mbstring": "*" 
-  }, 
-  
+  "require": {
+    "pusher/pusher-php-server": "^3.2",
+    "symfony/process": "^4.2",
+    "google/apiclient": "^2.0",
+    "ext-mbstring": "*"
+  },
   "require-dev": {
-   	 "phpunit/phpunit": "^5" 
-  } 
+    "phpunit/phpunit": "^5",
+    "codacy/coverage": "^1.4"
+  }
 }
