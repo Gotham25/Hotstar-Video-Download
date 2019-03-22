@@ -15,11 +15,75 @@ var timeRegex = /time=(\d{2}:\d{2}:\d{2}\.\d{2})/g;
 var sizeRegex = /size=\s*(\d+)kB/g;
 
 // Enable pusher logging - don't include this in production 
-Pusher.logToConsole = true;
+Pusher.logToConsole = false;
 var pusher = new Pusher("a44d3a9ebac525080cf1", {
     cluster: "ap2",
     forceTLS: true
 });
+
+function showSuccessDialog(successMessage) {
+    Swal.fire({
+        type: "success",
+        title: successMessage,
+        allowOutsideClick: () => false,
+        showConfirmButton: false,
+        timer: 2000, //dismiss after 2 seconds
+    });
+}
+
+function showErrorDialog(errorMessage) {
+    Swal.fire({
+        type: "error",
+        allowOutsideClick: () => false,
+        title: "Error in fetching the video format",
+        text: errorMessage,
+        footer: "Try again with valid video URL",
+    });
+}
+
+function showLoading() {
+    Swal.fire({
+        title: "Fetching available video formats",
+        allowOutsideClick: () => false,
+        onOpen: () => {
+            Swal.showLoading();
+        }
+    });
+}
+
+function stopLoading() {
+    Swal.close();
+}
+
+function getMatches(string, regex, index) {
+    index || (index = 1); // default to the first capturing group
+    var matches = [];
+    var match;
+    while (match = regex.exec(string)) {
+        matches.push(match[index]);
+    }
+    return matches;
+}
+
+function getMilliseconds(timeStr) {
+    var time = timeStr.split(/\.|:/);
+    var hh = time[0];
+    var mm = time[1];
+    var ss = time[2];
+    var milliSec = time[3];
+    var total = (hh * 60 * 60 * 1000) + (mm * 60 * 1000) + (ss * 1000) + milliSec;
+    return total;
+}
+
+function formatBytes(a, b) {
+    if (0 == a)
+        return "0 Bytes";
+    var c = 1000 /*Since base 10 values*/ ,
+        d = b || 2,
+        e = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"],
+        f = Math.floor(Math.log(a) / Math.log(c));
+    return parseFloat((a / Math.pow(c, f)).toFixed(d)) + " " + e[f]
+}
 
 function populateCompletionProgress(data) {
     var timeMatches = getMatches(data, timeRegex, 1);
@@ -50,7 +114,7 @@ var pusherEventCallback = function (event) {
 
     populateCompletionProgress(data);
 
-    if (data.indexOf("Video generation complete") != -1) {
+    if (data.indexOf("Video generation complete") !== -1) {
 
         showSuccessDialog("Video generation complete");
 
@@ -78,7 +142,7 @@ var pusherEventCallback = function (event) {
                 success: function () {
                     // Indicate to the user that the files have been saved.
                     //alert("Success! Files saved to your Dropbox.");
-                    console.log("Success! Files saved to your Dropbox.");
+                    //console.log("Success! Files saved to your Dropbox.");
                     Swal.close();
                     isDropboxUploadDialogShown = false;
                     Swal.fire({
@@ -95,7 +159,7 @@ var pusherEventCallback = function (event) {
                 // between 0 and 1. The progress callback is guaranteed to be called at least
                 // once with the value 1.
                 progress: function (progress) {
-                    console.log("Dropbox file upload in progress....");
+                    //console.log("Dropbox file upload in progress....");
                     if (!isDropboxUploadDialogShown) {
                         isDropboxUploadDialogShown = true;
                         Swal.fire({
@@ -110,7 +174,7 @@ var pusherEventCallback = function (event) {
 
                 // Cancel is called if the user presses the Cancel button or closes the Saver.
                 cancel: function () {
-                    console.log("Save to Dropbox cancelled.");
+                    //console.log("Save to Dropbox cancelled.");
                     Swal.fire({
                         type: "info",
                         title: "Save to dropbox cancelled",
@@ -139,7 +203,7 @@ var pusherEventCallback = function (event) {
             };
 
             var absoluteFilePath = (window.location.href.split("#")[0]).replace(/\/?$/, "/") + videoFileName;
-            console.log("absoluteFilePath : " + absoluteFilePath);
+            //console.log("absoluteFilePath : " + absoluteFilePath);
             Dropbox.save(absoluteFilePath, videoFileName, options);
         });
 
@@ -176,8 +240,8 @@ var pusherEventCallback = function (event) {
                             },
                         }).done(function (data) {
                             Swal.close();
-                            console.log("\nsuccess data : ");
-                            console.log(data);
+                            //console.log("\nsuccess data : ");
+                            //console.log(data);
                             Swal({
                                 type: "success",
                                 title: "File " + videoFileName + " saved to Google Drive successfully",
@@ -187,8 +251,8 @@ var pusherEventCallback = function (event) {
                             });
                         }).fail(function (data) {
                             Swal.close();
-                            console.log("error data : ");
-                            console.log(data);
+                            //console.log("error data : ");
+                            //console.log(data);
                             Swal.fire({
                                 type: "error",
                                 allowOutsideClick: () => false,
@@ -237,11 +301,13 @@ request.onload = function () {
         ipAddrAndUserAgent = data.ip + "_" + navigator.userAgent;
         channel.bind(ipAddrAndUserAgent, pusherEventCallback);
     } else {
-        console.error("Error occurred in getting response from ipify.org");
+        //console.error("Error occurred in getting response from ipify.org");
+		showErrorDialog("Error occurred in getting response from ipify.org");
     }
 };
 request.onerror = function () {
-    console.log("Error occurred in connecting to ipify.org");
+    //console.log("Error occurred in connecting to ipify.org");
+	showErrorDialog("Error occurred in getting response from ipify.org");
 };
 request.send();
 
@@ -375,7 +441,7 @@ app.controller("Controller2", function ($scope, $state, $stateParams, $http, $ti
             }
         }).then(
             function (response) {
-                console.log("generateVideo request completed successfully " + response.data);
+                //console.log("generateVideo request completed successfully " + response.data);
                 $state.go("route3", {
                     videoId: $stateParams.videoId
                 }, {
@@ -383,7 +449,7 @@ app.controller("Controller2", function ($scope, $state, $stateParams, $http, $ti
                 });
             },
             function (response) { // optional
-                console.error("Error occured in generateVideo request completion");
+                //console.error("Error occured in generateVideo request completion");
             });
     };
 });
@@ -411,69 +477,3 @@ app.controller("Controller3", function ($scope, $stateParams, $http, $timeout) {
     };
 
 });
-
-
-function showSuccessDialog(successMessage) {
-    Swal.fire({
-        type: "success",
-        title: successMessage,
-        allowOutsideClick: () => false,
-        showConfirmButton: false,
-        timer: 2000, //dismiss after 2 seconds
-    });
-}
-
-function showErrorDialog(errorMessage) {
-    Swal.fire({
-        type: "error",
-        allowOutsideClick: () => false,
-        title: "Error in fetching the video format",
-        text: errorMessage,
-        footer: "Try again with valid video URL",
-    });
-}
-
-function showLoading() {
-    Swal.fire({
-        title: "Fetching available video formats",
-        allowOutsideClick: () => false,
-        onOpen: () => {
-            Swal.showLoading();
-        }
-    });
-}
-
-function stopLoading() {
-    Swal.close();
-}
-
-
-function getMatches(string, regex, index) {
-    index || (index = 1); // default to the first capturing group
-    var matches = [];
-    var match;
-    while (match = regex.exec(string)) {
-        matches.push(match[index]);
-    }
-    return matches;
-}
-
-function getMilliseconds(timeStr) {
-    var time = timeStr.split(/\.|:/);
-    var hh = time[0];
-    var mm = time[1];
-    var ss = time[2];
-    var milliSec = time[3];
-    var total = (hh * 60 * 60 * 1000) + (mm * 60 * 1000) + (ss * 1000) + milliSec;
-    return total;
-}
-
-function formatBytes(a, b) {
-    if (0 == a)
-        return "0 Bytes";
-    var c = 1000 /*Since base 10 values*/ ,
-        d = b || 2,
-        e = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"],
-        f = Math.floor(Math.log(a) / Math.log(c));
-    return parseFloat((a / Math.pow(c, f)).toFixed(d)) + " " + e[f]
-}
