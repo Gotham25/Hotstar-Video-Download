@@ -9,24 +9,21 @@ function make_get_request($url, array $headers = []) {
    
    $guzzleClient = new GuzzleHttp\Client();
    try {
-      $guzzleResponse  = $guzzleClient->request('GET', $url, [
+      $response  = $guzzleClient->request('GET', $url, [
             'headers' => $headers
          ]);
-      $guzzleResponseCode = $guzzleResponse->getStatusCode();
+      $responseCode = $response->getStatusCode();
       
-      if($guzzleResponseCode == 200){
-         $guzzleResponseBody = (string)$guzzleResponse->getBody();
-         return $guzzleResponseBody;
+      if($responseCode == 200){
+         return (string)$response->getBody();
       }
-      
-      throw new ClientException("Error code $guzzleResponseCode. Error Processing Request Invalid response.", 1);
-      
+
+      throw new ClientException("Error code $responseCode. Error Processing Request Invalid response.", 1);
+
    } catch(ConnectException $e) {
       return $e->getMessage();
    } catch(ClientException $e) {
-      $guzzleErrorResponse = $e->getResponse();
-      $guzzleErrorResponseBody = $guzzleErrorResponse->getBody()->getContents();
-      return $guzzleErrorResponseBody;
+      return $e->getResponse()->getBody()->getContents();
    }
 }
 

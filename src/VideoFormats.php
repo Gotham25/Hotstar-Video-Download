@@ -54,7 +54,7 @@
 						break;
 				case "actors":
 						$actors = "";
-						foreach($contentValue as $i => $actor) {
+						foreach($contentValue as $actor) {
 							if(strlen($actors) !=0 ) {
 								$actors .= "/";
 							}
@@ -101,8 +101,8 @@
 		}
 		
 		private function getPlaybackUrlData($playbackUrl) {
-			$playbackUrlDataPieces = explode("?", $playbackUrl);
-			return count($playbackUrlDataPieces) === 2 ? $playbackUrlDataPieces[1] : "";
+			$urlPieces = explode("?", $playbackUrl);
+			return count($urlPieces) === 2 ? $urlPieces[1] : "";
 		}
 
 		public function getAvailableFormats() {
@@ -157,12 +157,12 @@
 
 				}
 				$url = $this->playbackUri."&tas=10000";
-				$playbackUriResponse = make_get_request($url, $this->headers);
-				$playbackUriResponseJson = json_decode($playbackUriResponse, true);
-				if ($playbackUriResponseJson["statusCodeValue"] != 200) {
+				$uriResponse = make_get_request($url, $this->headers);
+				$uriResponseJson = json_decode($uriResponse, true);
+				if ($uriResponseJson["statusCodeValue"] != 200) {
 					throw new Exception("Error processing request for playbackUri");
 				}
-				$playbackUrl = $playbackUriResponseJson["body"]["results"]["item"]["playbackUrl"];
+				$playbackUrl = $uriResponseJson["body"]["results"]["item"]["playbackUrl"];
 				$this->playbackUrlData = $this->getPlaybackUrlData($playbackUrl);
 				$playbackUrlData = $this->getPlaybackUrlData($playbackUrl);
 				$playbackUrlresponse = make_get_request($playbackUrl, $this->headers);

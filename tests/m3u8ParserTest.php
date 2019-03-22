@@ -6,16 +6,16 @@ use PHPUnit\Framework\TestCase;
 class m3u8ParserTest extends TestCase
 {
 
-	protected static $m3u8TestCasesContents;
+	protected static $testCaseContents;
 
 	public static function setUpBeforeClass() {
 
-		self::$m3u8TestCasesContents = [];
+		self::$testCaseContents = [];
 		$contentCount = 0;
 		//Get all testCase files in current directory
 		foreach (glob(dirname(__FILE__)."/*.txt") as $m3u8File) {
 			$fileContents = file_get_contents($m3u8File);
-			self::$m3u8TestCasesContents[$contentCount++] = $fileContents;
+			self::$testCaseContents[$contentCount++] = $fileContents;
 		}
 	}
 
@@ -23,7 +23,7 @@ class m3u8ParserTest extends TestCase
     {
     	$playbackUrl = "https://hssouthsp-vh.akamaihd.net/i/videos/vijay_hd/chinnathambi/149/master_,106,180,400,800,1300,2000,3000,4500,kbps.mp4.csmil/master.m3u8?hdnea=st=1551575624~exp=1551577424~acl=/*~hmac=3d89f2aab02315ee100156209746e0e9f3bc70b0b52c17573300b5caa517cfd6";
     	$playbackUrlData = "hdnea=st=1551575624~exp=1551577424~acl=/*~hmac=3d89f2aab02315ee100156209746e0e9f3bc70b0b52c17573300b5caa517cfd6";
-    	$expectedM3u8ParsedContent = [
+    	$expectedContent = [
     		"hls-167" => [
 		        "PROGRAM-ID" => "1",
 		        "BANDWIDTH" => "167271",
@@ -79,15 +79,15 @@ class m3u8ParserTest extends TestCase
 		    ]
     	];
 
-    	$actualM3u8ParsedContent = parseM3u8Content(self::$m3u8TestCasesContents[0], $playbackUrl, $playbackUrlData);
-    	$this->assertEquals($expectedM3u8ParsedContent, $actualM3u8ParsedContent);
+    	$actualContent = parseM3u8Content(self::$testCaseContents[0], $playbackUrl, $playbackUrlData);
+    	$this->assertEquals($expectedContent, $actualContent);
     }
 
     function testm3u8Parser_ValidM3u8Content2_ProducesVideoFormats()
     {
     	$playbackUrl = "https://hsdesinova.akamaized.net/video/vijay_hd/chinnathambi/92df3509e0/337/master.m3u8?hdnea=st=1551575720~exp=1551577520~acl=/*~hmac=75f2905ca5d5f79a674205e3e0e25b622ff9d08f77dbc2d50374d70ddb706669";
     	$playbackUrlData = "hdnea=st=1551575720~exp=1551577520~acl=/*~hmac=75f2905ca5d5f79a674205e3e0e25b622ff9d08f77dbc2d50374d70ddb706669";
-    	$expectedM3u8ParsedContent = [
+    	$expectedContent = [
     		"hls-141" => [
 			    "BANDWIDTH" => "157168",
 			    "AVERAGE-BANDWIDTH" => "141703",
@@ -161,8 +161,8 @@ class m3u8ParserTest extends TestCase
 			]
     	];
 
-    	$actualM3u8ParsedContent = parseM3u8Content(self::$m3u8TestCasesContents[1], $playbackUrl, $playbackUrlData);
-    	$this->assertEquals($expectedM3u8ParsedContent, $actualM3u8ParsedContent);
+    	$actualContent = parseM3u8Content(self::$testCaseContents[1], $playbackUrl, $playbackUrlData);
+    	$this->assertEquals($expectedContent, $actualContent);
     }
 
 
@@ -170,7 +170,7 @@ class m3u8ParserTest extends TestCase
     {
     	$playbackUrl = "https://hses.akamaized.net/videos/vijay_hd/chinnathambi/0b3c2675ea/362/1100017417/phone/master.m3u8?hdnea=st=1551575749~exp=1551577549~acl=/*~hmac=45b40d19a096f5a9e1d0eb68c2c9577ae349443dde273a9ce393f17686badcb7";
     	$playbackUrlData = "hdnea=st=1551575749~exp=1551577549~acl=/*~hmac=45b40d19a096f5a9e1d0eb68c2c9577ae349443dde273a9ce393f17686badcb7";
-    	$expectedM3u8ParsedContent = [
+    	$expectedContent = [
     		"hls-178" => [
 			    "AVERAGE-BANDWIDTH" => "178039",
 			    "BANDWIDTH" => "236504",
@@ -220,8 +220,8 @@ class m3u8ParserTest extends TestCase
 			]
     	];
 
-    	$actualM3u8ParsedContent = parseM3u8Content(self::$m3u8TestCasesContents[2], $playbackUrl, $playbackUrlData);
-    	$this->assertEquals($expectedM3u8ParsedContent, $actualM3u8ParsedContent);
+    	$actualContent = parseM3u8Content(self::$testCaseContents[2], $playbackUrl, $playbackUrlData);
+    	$this->assertEquals($expectedContent, $actualContent);
     }
 
 }
