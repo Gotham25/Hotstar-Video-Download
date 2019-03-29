@@ -52,7 +52,7 @@ var pusherEventCallback = function(event){
 	
 	populateCompletionProgress(data);
 	
-	if(data.indexOf('Video generation complete') != -1){
+	if(data.indexOf('Video generation complete') != -1) {
 		
 		showSuccessDialog("Video generation complete");
 		
@@ -152,9 +152,9 @@ var pusherEventCallback = function(event){
 					Cookies.expire('GoogleDriveAuthRedirectUri');
 					var popup = window.open("/oauthFetchGoogleDrive.php", "GoogleDriveAuthFetchWindow", 'width=800, height=600');
 					var googleDriveOAuthPollTimer = window.setInterval(function() {
-						var authorizationCode = Cookies.get('GoogleDriveAuthCode');
-						var authRedirectUri = Cookies.get('GoogleDriveAuthRedirectUri');
-						if(authorizationCode!==undefined && authRedirectUri!==undefined) {
+						var authorizationCodeGoogledrive = Cookies.get('GoogleDriveAuthCode');
+						var authRedirectUriGoogleDrive = Cookies.get('GoogleDriveAuthRedirectUri');
+						if(authorizationCodeGoogledrive!==undefined && authRedirectUriGoogleDrive!==undefined) {
 							//close opened popup window and clear cookies and googleDriveOAuthPollTimer
 							popup.close();
 							clearInterval(googleDriveOAuthPollTimer);
@@ -173,7 +173,7 @@ var pusherEventCallback = function(event){
 								url: "UploadToGoogleDrive.php",
 								type: "POST",
 								data: {
-									authCode: authorizationCode,
+									authCode: authorizationCodeGoogledrive,
 									fileName: videoFileName,
 								},
 							}).done(function(data) {
@@ -214,19 +214,89 @@ var pusherEventCallback = function(event){
 			});
 			
 			document.getElementById("odLink").addEventListener("click", function(){
-				Swal.fire({
-					type: 'info',
-					title: 'Onedrive upload',
-					html: "<font size='3' color='black'>Functionality to be added soon</font>",
-					allowOutsideClick: () => true,
-					showConfirmButton: false,
-					timer: 1500, //dismiss after 1.5 seconds
-				});
+				if(Cookies.enabled){
+					//remove cookies if any from previous session
+					Cookies.expire('OneDriveAuthCode');
+					Cookies.expire('OneDriveAuthRedirectUri');
+					var popup = window.open("/oauthFetchOneDrive.php", "OneDriveAuthFetchWindow", 'width=800, height=600');
+					var oneDriveOAuthPollTimer = window.setInterval(function() {
+						var authorizationCodeOnedrive = Cookies.get('OneDriveAuthCode');
+						var authRedirectUriOnedrive = Cookies.get('OneDriveAuthRedirectUri');
+						if(authorizationCodeOnedrive!==undefined && authRedirectUriOnedrive!==undefined) {
+							//close opened popup window and clear cookies and oneDriveOAuthPollTimer
+							popup.close();
+							clearInterval(oneDriveOAuthPollTimer);
+							Cookies.expire('OneDriveAuthCode');
+							Cookies.expire('OneDriveAuthRedirectUri');
+							
+							Swal.fire({
+								title: 'Uploading file '+videoFileName+' to Onedrive',
+								allowOutsideClick: () => false,
+								onOpen: () => {
+									Swal.showLoading();
+								}
+							});
+							
+							$.ajax({
+								url: "UploadToOneDrive.php",
+								type: "POST",
+								data: {
+									authCode: authorizationCodeOnedrive,
+									fileName: videoFileName,
+									video_id: videoId,
+									uniqueId: ipAddr_userAgent,
+								},
+							}).done(function(data) {
+								console.log("\nsuccess data : ");
+								console.log(data);
+								console.log("got response for onedrive upload");
+							}).fail(function(data) {
+								Swal.close();
+								console.log("\error data : ");
+								console.log(data);
+								Swal.fire({
+									type: 'error',
+									allowOutsideClick: () => false,
+									title: 'Error in uploading file '+videoFileName,
+									text: data,
+									footer: '',
+								});
+							});
+						}
+					}, 10);	
+				}else{
+					Swal.fire({
+						type: 'error',
+						allowOutsideClick: () => false,
+						title: 'Upload error',
+						text: 'Functionality disabled due to inavailability of cookies',
+						footer: 'Enable cookies and try again',
+					});
+				}
+				
 			});
 			
 			document.getElementById("videoUploadContainer").style.display="block";
 			
-		}
+	} else if (data.indexOf('uploaded successfully to Onedrive') != -1) {
+		Swal.close();
+		Swal({
+			type: 'success',
+			title: data, //"File "+videoFileName+" saved to Onedrive successfully",
+			allowOutsideClick: () => false,
+			showConfirmButton: false,
+			timer: 2000, //dismiss after 2 seconds
+		});
+	} else if (data.indexOf('Error occurred for Onedrive Upload') != -1) {
+		Swal.close();
+		Swal.fire({
+			type: 'error',
+			allowOutsideClick: () => false,
+			title: 'Error in uploading file '+videoFileName,
+			text: data, //errorMessage,
+			footer: '',
+		});
+	}
 				
 };
 
