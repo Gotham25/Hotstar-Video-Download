@@ -57,7 +57,7 @@
 			}
 			
 			if($hotstarVideosRoot == null){
-				$hotstarVideosRoot = $personalDriveRoot->createFolder("Hotstar videos", ["description" => "Video folder created by uploaded by Hotstar-Video-Download app"]);
+				$hotstarVideosRoot = $personalDriveRoot->createFolder("Hotstar videos", ["description" => "Video folder created by Hotstar Video Downloader web app"]);
 			}
 			
 			$fileContents = file_get_contents($videoFile);

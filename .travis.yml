@@ -13,34 +13,20 @@ env:
 install:
  - curl -s http://getcomposer.org/installer | php
  - php composer.phar install --dev --no-interaction
- - composer require php-coveralls/php-coveralls
 
 script:
  - rm -rf build/
  - mkdir -p build/logs
- - echo "Binaries downloaded successfully"
  - echo "Starting php lint check for php files"
- - php -l downloadVideo.php >> build/logs/lint_check.log
- - php -l generateVideo.php >> build/logs/lint_check.log
- - php -l getAvailableVideoFormats.php >> build/logs/lint_check.log
- - php -l UploadToGoogleDrive.php >> build/logs/lint_check.log
- - php -l src/VideoFormats.php >> build/logs/lint_check.log
- - php -l src/helper/hotstarauthgenerator.php >> build/logs/lint_check.log
- - php -l src/helper/m3u8Parser.php >> build/logs/lint_check.log
- - php -l src/helper/utils.php >> build/logs/lint_check.log
- - php -l tests/bootstrap.php >> build/logs/lint_check.log
- - php -l tests/utilsTest.php >> build/logs/lint_check.log
- - php -l tests/VideoFormatsTest.php >> build/logs/lint_check.log
- - php -l tests/m3u8ParserTest.php >> build/logs/lint_check.log
- - php -l gdriveUpload.php >> build/logs/lint_check.log
- - php -l getConfigVars.php >> build/logs/lint_check.log
- - php -l oauthFetchGoogleDrive.php >> build/logs/lint_check.log
- - php -l redirect_google.php >> build/logs/lint_check.log
+ - find -name "*.php" -not -path "./vendor/*" -not -path "./.composer/*" -not -path "./.heroku/*" -exec bash -c 'RELATIVE_PATH="{}"; php -l ${RELATIVE_PATH:2}' >> build/logs/lint_checks.log \;
  - echo "PHP lint check completed successfully"
+ - echo "Starting PHP unit tests"
  - phpunit --configuration phpunit.xml
+ - echo "PHP unit tests completed successfully"
 
 after_success:
  - travis_retry php vendor/bin/php-coveralls -v
+ - travis_retry php vendor/bin/codacycoverage clover
  - echo $MESSAGE >> build/build.log
 
 deploy:

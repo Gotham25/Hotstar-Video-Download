@@ -17,7 +17,7 @@ var timeRegex = /time=(\d{2}:\d{2}:\d{2}\.\d{2})/g;
 var sizeRegex = /size=\s*(\d+)kB/g;
 
 // Enable pusher logging - don't include this in production 
-Pusher.logToConsole = true; 
+Pusher.logToConsole = false; 
 var pusher = new Pusher('a44d3a9ebac525080cf1', {
   cluster: 'ap2',
   forceTLS: true
@@ -249,7 +249,6 @@ var pusherEventCallback = function(event){
 							}).done(function(data) {
 								console.log("\nsuccess data : ");
 								console.log(data);
-								console.log("got response for onedrive upload");
 							}).fail(function(data) {
 								Swal.close();
 								console.log("\error data : ");
@@ -282,7 +281,7 @@ var pusherEventCallback = function(event){
 		Swal.close();
 		Swal({
 			type: 'success',
-			title: data, //"File "+videoFileName+" saved to Onedrive successfully",
+			title: data,
 			allowOutsideClick: () => false,
 			showConfirmButton: false,
 			timer: 2000, //dismiss after 2 seconds
@@ -293,7 +292,7 @@ var pusherEventCallback = function(event){
 			type: 'error',
 			allowOutsideClick: () => false,
 			title: 'Error in uploading file '+videoFileName,
-			text: data, //errorMessage,
+			text: data,
 			footer: '',
 		});
 	}
