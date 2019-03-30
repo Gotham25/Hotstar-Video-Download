@@ -16,9 +16,9 @@
 		
 		var currentPageUrl=window.location.href;
 		var isAuthCodeAvailable = (currentPageUrl.indexOf("code=") != -1);
-		if(isAuthCodeAvailable){
+		if(isAuthCodeAvailable) {
 			var authCode = getQueryStringValue(currentPageUrl, "code");
-			if(Cookies.enabled){
+			if(Cookies.enabled) {
 				Cookies.set('OneDriveAuthCode', authCode);
 				Cookies.set('OneDriveAuthRedirectUri', currentPageUrl); 
 			}

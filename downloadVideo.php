@@ -7,8 +7,7 @@ if (!isset($_GET['videoId'])) {
 $filename = $_GET['videoId'] . ".zip";
 $absoluteFilePath = getcwd() . DIRECTORY_SEPARATOR . $filename;
 
-// http headers for zip downloads 
-
+// http headers for zip downloads
 header("Pragma: public");
 header("Expires: 0");
 header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
