@@ -1,6 +1,6 @@
 <html>
   <head>
-	<title>Google drive upload redirect</title>
+	<title>One drive upload redirect</title>
 	<!-- HTTP 1.1 -->
 	<meta http-equiv="Cache-Control" content="no-store"/>
 	<!-- HTTP 1.0 -->
@@ -19,8 +19,8 @@
 		if(isAuthCodeAvailable) {
 			var authCode = getQueryStringValue(currentPageUrl, "code");
 			if(Cookies.enabled) {
-				Cookies.set('GoogleDriveAuthCode', authCode);
-				Cookies.set('GoogleDriveAuthRedirectUri', currentPageUrl); 
+				Cookies.set('OneDriveAuthCode', authCode);
+				Cookies.set('OneDriveAuthRedirectUri', currentPageUrl); 
 			}
 		}
 	</script>
