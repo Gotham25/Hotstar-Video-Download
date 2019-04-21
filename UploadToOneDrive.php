@@ -4,7 +4,6 @@ ini_set('memory_limit', -1); //unlimited memory usage
 ini_set('max_execution_time', 600); //600 seconds = 10 minutes
 
 require_once __DIR__ . '/vendor/autoload.php';
-($config = include __DIR__ . '/oneDriveConfig.php') or die('Configuration file not found');
 
 use Symfony\Component\Process\Process;
 use GuzzleHttp\Client as GuzzleHttpClient;

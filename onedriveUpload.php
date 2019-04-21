@@ -4,7 +4,6 @@ ini_set('memory_limit', -1); //unlimited memory usage
 ini_set('max_execution_time', 600); //600 seconds = 10 minutes
 
 require_once __DIR__ . '/vendor/autoload.php';
-($config = include __DIR__ . '/oneDriveConfig.php') or die('Configuration file not found');
 
 use GuzzleHttp\Client as GuzzleHttpClient;
 use Krizalys\Onedrive\Client as KrizalysOnedriveClient;
@@ -15,16 +14,20 @@ if ($argc === 3) {
     $authCode = $argv[1];
     $videoFile = $argv[2];
 
+    $onedriveClientId = getenv("ONEDRIVE_CLIENT_ID");
+    $onedriveClientSecret = getenv("ONEDRIVE_CLIENT_SECRET");
+    $onedriveRedirectUri = getenv("ONEDRIVE_REDIRECT_URI");
+
     try {
 
-        $client = new KrizalysOnedriveClient($config['ONEDRIVE_CLIENT_ID'], new MicrosoftGraph() , new GuzzleHttpClient());
+        $client = new KrizalysOnedriveClient($onedriveClientId, new MicrosoftGraph() , new GuzzleHttpClient());
 
         // Gets a log in URL with sufficient privileges from the OneDrive API.
-        $url = $client->getLogInUrl(['files.read', 'files.read.all', 'files.readwrite', 'files.readwrite.all', 'offline_access', ], $config['ONEDRIVE_REDIRECT_URI']);
+        $url = $client->getLogInUrl(['files.read', 'files.read.all', 'files.readwrite', 'files.readwrite.all', 'offline_access', ], $onedriveRedirectUri);
 
         $_SESSION['onedrive.client.state'] = $client->getState();
 
-        $client->obtainAccessToken($config['ONEDRIVE_CLIENT_SECRET'], $authCode);
+        $client->obtainAccessToken($onedriveClientSecret, $authCode);
 
         $drives = $client->getDrives();
         $personalDrive = null;
