@@ -24,11 +24,13 @@ if ($argc === 3) {
     $client = new Google_Client();
 
     try {
-        $client->setAuthConfig('client_secrets.json');
-        $client->setAccessType("offline");
-        $client->setIncludeGrantedScopes(true);
+        $client->setApplicationName(getenv("GOOGLE_DRIVE_APPLICATION_NAME"));
+        $client->setClientId(getenv("GOOGLE_DRIVE_CLIENT_ID"));
+        $client->setClientSecret(getenv("GOOGLE_DRIVE_CLIENT_SECRET"));
+        $client->setRedirectUri(getenv("GOOGLE_DRIVE_REDIRECT_URI"));
+        $client->setAccessType(getenv("GOOGLE_DRIVE_ACCESS_TYPE"));
         $client->addScope(Google_Service_Drive::DRIVE);
-        $client->setRedirectUri('https://hotstardownload.herokuapp.com/redirect_google.php');
+        $client->setIncludeGrantedScopes(true);
         $auth_url = $client->createAuthUrl();
         $sanitized_auth_url = filter_var($auth_url, FILTER_SANITIZE_URL);
         $client->authenticate($authCode);
