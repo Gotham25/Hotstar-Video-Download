@@ -1,5 +1,11 @@
 <?php
 
+require_once (realpath(dirname(__FILE__) . '/..') . "/vendor/autoload.php");
+
+use Ramsey\Uuid\Uuid;
+use Ramsey\Uuid\Exception\UnsatisfiedDependencyException; 
+
+
 class VideoFormats {
     private $videoUrl;
     private $playbackUri;
@@ -123,6 +129,7 @@ class VideoFormats {
             $metaDataRootKey = str_replace('hotstar.com', '', substr($this->videoUrl, strpos($this->videoUrl, 'hotstar.com')));
 
             $fileContents = file_get_contents($this->videoUrl);
+            file_put_contents("page.html", $fileContents);
 
             if (preg_match('%<script>window.APP_STATE=(.*?)</script>%', $fileContents, $match)) {
                 $this->appState = $match[1];
@@ -154,21 +161,59 @@ class VideoFormats {
                 }
 
             }
+            
             $url = $this->playbackUri . "&tas=10000";
-            $playbackUriResponse = make_get_request($url, $this->headers);
+            $url2 = "https://api.hotstar.com/h/v2/play/in/contents/" . $videoId . "?";
+            $url2 .= "desiredConfig=encryption:plain;ladder:phone,tv;package:hls,dash&";
+            $url2 .= "client=mweb&";
+            $url2 .= "clientVersion=6.18.0&";
+            $url2 .= "deviceId=" . Ramsey\Uuid\Uuid::uuid4()->toString() . "&";
+            $url2 .= "osName=Windows&";
+            $url2 .= "osVersion=10";
+            $playbackUriResponse = make_get_request($url2, $this->headers);
             $playbackUriResponseJson = json_decode($playbackUriResponse, true);
             if ($playbackUriResponseJson["statusCodeValue"] != 200) {
                 throw new Exception("Error processing request for playbackUri");
             }
-            $playbackUrl = $playbackUriResponseJson["body"]["results"]["item"]["playbackUrl"];
+            $playBackSets = $playbackUriResponseJson["body"]["results"]["playBackSets"];
+            foreach($playBackSets as $playBackSet) {
+                if(strpos($playBackSet["playbackUrl"], "master.m3u8") !== false) {
+                    $playbackUrlresponse = make_get_request($playBackSet["playbackUrl"], $this->headers);
+                    $playbackUrlData = $this->getPlaybackUrlData($playBackSet["playbackUrl"]);
+                    $url_formats = array_merge_recursive($url_formats, parseM3u8Content($playbackUrlresponse, $playBackSet["playbackUrl"], $playbackUrlData));
+                }
+            }
+            
+            $tmp_url_formats = array();
+            foreach($url_formats as $url_formats_key => $url_formats_value)  {
+                if(is_array($url_formats_value["STREAM-URL"])) {
+                    $size = count($url_formats_value["STREAM-URL"]);
+                    for($i=0; $i<$size; $i++) {
+                        $tmpIndex = "$url_formats_key-$i";
+                        $tmp_url_formats[$tmpIndex] = array();
+                        foreach($url_formats_value as $k => $v) {
+                            $tmp_url_formats[$tmpIndex][$k] = $v[$i];
+                        }
+                    }
+                } else {
+                    $tmp_url_formats[$url_formats_key] = $url_formats_value;
+                }
+            }
+            $url_formats = $tmp_url_formats;            
+            
+            /*$playbackUrl = $playbackUriResponseJson["body"]["results"]["item"]["playbackUrl"];
+            echo PHP_EOL.PHP_EOL."playbackUrl :".$playbackUrl.PHP_EOL.PHP_EOL;
             $this->playbackUrlData = $this->getPlaybackUrlData($playbackUrl);
+            echo PHP_EOL.PHP_EOL."playbackUrlData :".$this->playbackUrlData.PHP_EOL.PHP_EOL;
             $playbackUrlData = $this->getPlaybackUrlData($playbackUrl);
             $playbackUrlresponse = make_get_request($playbackUrl, $this->headers);
-            $url_formats = parseM3u8Content($playbackUrlresponse, $playbackUrl, $playbackUrlData);
+            echo PHP_EOL.PHP_EOL."playbackUrlresponse :".$playbackUrlresponse.PHP_EOL.PHP_EOL;
+            $url_formats = parseM3u8Content($playbackUrlresponse, $playbackUrl, $playbackUrlData); */
+           
             $url_formats["metadata"] = $videoMetadata;
             $url_formats["videoId"] = $videoId;
             $url_formats["isError"] = false;
-
+            
         }
         catch(Exception $e) {
             $url_formats["isError"] = true;
