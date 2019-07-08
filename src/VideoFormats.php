@@ -108,7 +108,7 @@ class VideoFormats {
         return count($playbackUrlDataPieces) === 2 ? $playbackUrlDataPieces[1] : "";
     }
     
-    function dbg_var_dump($var) {
+    private function dbg_var_dump($var) {
        ob_start();
        var_dump($var);
        $result = ob_get_clean();
@@ -193,7 +193,7 @@ class VideoFormats {
                 }
             }
             
-            error_log("url_formats: ".dbg_var_dump($url_formats));
+            error_log("url_formats: ".$this->dbg_var_dump($url_formats));
             
             $tmp_url_formats = array();
             foreach($url_formats as $url_formats_key => $url_formats_value)  {
@@ -211,11 +211,11 @@ class VideoFormats {
                 }
             }
             
-            error_log("tmp_url_formats: ".dbg_var_dump($tmp_url_formats));
+            error_log("tmp_url_formats: ".$this->dbg_var_dump($tmp_url_formats));
             
             $url_formats = $tmp_url_formats;
             
-            error_log("url_formats: ".dbg_var_dump($url_formats));    
+            error_log("url_formats: ".$this->dbg_var_dump($url_formats));    
             
             /*$playbackUrl = $playbackUriResponseJson["body"]["results"]["item"]["playbackUrl"];
             echo PHP_EOL.PHP_EOL."playbackUrl :".$playbackUrl.PHP_EOL.PHP_EOL;
