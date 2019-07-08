@@ -107,6 +107,15 @@ class VideoFormats {
         $playbackUrlDataPieces = explode("?", $playbackUrl);
         return count($playbackUrlDataPieces) === 2 ? $playbackUrlDataPieces[1] : "";
     }
+    
+    function dbg_var_dump($var) {
+       ob_start();
+       var_dump($var);
+       $result = ob_get_clean();
+       return strip_tags(strtr($result, ['=&gt;' => '=>']));
+    }
+
+
 
     public function getAvailableFormats() {
 
@@ -184,6 +193,8 @@ class VideoFormats {
                 }
             }
             
+            error_log("url_formats: ".dbg_var_dump($url_formats));
+            
             $tmp_url_formats = array();
             foreach($url_formats as $url_formats_key => $url_formats_value)  {
                 if(is_array($url_formats_value["STREAM-URL"])) {
@@ -199,7 +210,12 @@ class VideoFormats {
                     $tmp_url_formats[$url_formats_key] = $url_formats_value;
                 }
             }
-            $url_formats = $tmp_url_formats;            
+            
+            error_log("tmp_url_formats: ".dbg_var_dump($tmp_url_formats));
+            
+            $url_formats = $tmp_url_formats;
+            
+            error_log("url_formats: ".dbg_var_dump($url_formats));    
             
             /*$playbackUrl = $playbackUriResponseJson["body"]["results"]["item"]["playbackUrl"];
             echo PHP_EOL.PHP_EOL."playbackUrl :".$playbackUrl.PHP_EOL.PHP_EOL;
