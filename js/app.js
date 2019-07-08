@@ -380,7 +380,8 @@ app.controller("Controller1", function($scope, $state, $http, $timeout) {
 			url: 'getAvailableVideoFormats.php',
 			method: "POST",
 			data: 'url='+videoUrl,
-			headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+			headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+			timeout: 3*60*1000, //3 minutes
 		}).then(
 			function(response) {
 				//success

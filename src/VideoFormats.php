@@ -5,6 +5,7 @@ require_once (realpath(dirname(__FILE__) . '/..') . "/vendor/autoload.php");
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\Exception\UnsatisfiedDependencyException; 
 
+set_time_limit(180);
 
 class VideoFormats {
     private $videoUrl;
