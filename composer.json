@@ -4,7 +4,8 @@
     "symfony/process": "^4.2",
     "google/apiclient": "^2.0",
     "krizalys/onedrive-php-sdk": "^2.1",
-    "ext-mbstring": "*"
+    "ext-mbstring": "*",
+    "ramsey/uuid": "^3.8"
   },
   "require-dev": {
     "phpunit/phpunit": "^5",
