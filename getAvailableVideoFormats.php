@@ -7,5 +7,7 @@ if (!isset($_POST['url'])) {
 
 $videoFormats = new VideoFormats($_POST['url']);
 
+error_log($videoFormats->getAvailableFormats());
+
 echo $videoFormats->getAvailableFormats();
 ?>
