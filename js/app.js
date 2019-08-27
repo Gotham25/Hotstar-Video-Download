@@ -1,5 +1,6 @@
 var app = angular.module("app", ["ui.router"]);
 var ipAddr_userAgent = "";
+var ipAddr="";
 var pageUrl="";
 var video_Formats;
 var serverConsoleOutput="";
@@ -299,14 +300,23 @@ var pusherEventCallback = function(event){
 				
 };
 
+function addDBPlugin(ipAddress) {
+	jQuery.getJSON(pageUrl+"getConfigVars.php", {ip: ipAddress}, function(e) {
+		var dbKey = e.dbKey;
+		jQuery('head').append('<script type="text/javascript" src="https://www.dropbox.com/static/api/2/dropins.js" id="dropboxjs" data-app-key="'+dbKey+'"></script>');
+	});
+}
+
 var request = new XMLHttpRequest();
 request.open('GET', 'https://api.ipify.org/?format=json', true);
 request.onload = function() {
   if (request.status >= 200 && request.status < 400) {
     var data = JSON.parse(request.responseText);
 	var channel = pusher.subscribe('hotstar-video-download-v1'); 
+	ipAddr = data.ip;
 	ipAddr_userAgent = data.ip+"_"+navigator.userAgent;
 	channel.bind(ipAddr_userAgent, pusherEventCallback);
+	addDBPlugin(data.ip);
   } else {
     console.error("Error occurred in getting response from ipify.org");
   }
@@ -357,11 +367,6 @@ app.controller("Controller1", function($scope, $state, $http, $timeout) {
 	if(pageUrl[pageUrl.length-1] != "/"){
 		pageUrl += "/";
 	}
-	
-	jQuery.getJSON(pageUrl+"getConfigVars.php", function(e) {
-		var dbKey = e.dbKey;
-		jQuery('head').append('<script type="text/javascript" src="https://www.dropbox.com/static/api/2/dropins.js" id="dropboxjs" data-app-key="'+dbKey+'"></script>');
-	});
 	
 	//handle enter press key event
 	$scope.isEnter = function (event) {
