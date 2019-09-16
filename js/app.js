@@ -3,7 +3,11 @@ var ipAddr_userAgent = "";
 var ipAddr="";
 var pageUrl="";
 var video_Formats;
+var selectedFormat;
 var serverConsoleOutput="";
+var totalSegments = 0;
+var dashFileSize = 0;
+var dashFileCount = 0;
 var cProgressOptions = {
 	line_width: 6,
 	color: "#e08833",
@@ -16,6 +20,7 @@ var totalDurationInMilliSec = 0;
 var durationRegex = /Duration: (\d{2}:\d{2}:\d{2}.\d{2})/g;
 var timeRegex = /time=(\d{2}:\d{2}:\d{2}\.\d{2})/g;
 var sizeRegex = /size=\s*(\d+)kB/g;
+var dashFileSizeRegex = /seg-\d+.m4s of size (\d+) bytes downloaded successfully/g;
 
 // Enable pusher logging - don't include this in production 
 Pusher.logToConsole = false; 
@@ -24,7 +29,7 @@ var pusher = new Pusher('a44d3a9ebac525080cf1', {
   forceTLS: true
 });
 
-function populateCompletionProgress(data){
+function populateVideoCompletionProgress(data){
 	var timeMatches = getMatches(data, timeRegex, 1);
 	var sizeMatches = getMatches(data, sizeRegex, 1);
 	if(data.indexOf("Duration") > -1 ){
@@ -41,6 +46,17 @@ function populateCompletionProgress(data){
 	 }
 }
 
+function populateDashAVCompletionProgress(data){
+	var dashFileSizeMatches = getMatches(data, dashFileSizeRegex, 1);
+	var matchSize = dashFileSizeMatches.length;
+	for(var i=0; i< matchSize; i++, dashFileCount++){
+		dashFileSize = parseInt(dashFileSize) + parseInt(dashFileSizeMatches[i] || 0);
+		cProgressOptions.percent = Math.round( ((dashFileCount/totalSegments).toFixed(2) * 100) );
+		cProgressOptions.text = "Size : "+formatBytes(dashFileSize);
+		jQuery(".my-progress-bar").circularProgress(cProgressOptions);
+	}
+}
+
 var pusherEventCallback = function(event){
 	var message = event.message;
 	var data = message['data'];
@@ -51,11 +67,17 @@ var pusherEventCallback = function(event){
 	
 	serverConsoleOutput += data+"<br/>";
 	
-	populateCompletionProgress(data);
+	if(selectedFormat.startsWith("dash-")) {
+		populateDashAVCompletionProgress(data);
+	} else if(selectedFormat.startsWith("hls-")) {
+		populateVideoCompletionProgress(data);
+	} else {
+		//TODO: Handle unsupported formats
+	}
 	
-	if(data.indexOf('Video generation complete') != -1) {
+	if(data.indexOf("generation complete...") != -1) {
 		
-		showSuccessDialog("Video generation complete");
+		showSuccessDialog("File generation complete");
 		
 		var generationElement = document.querySelector('#videoGeneration');
 			if (typeof generationElement != undefined){
@@ -411,18 +433,28 @@ app.controller("Controller1", function($scope, $state, $http, $timeout) {
 
 
 app.controller("Controller2", function($scope, $state, $stateParams, $http, $timeout) {
-	$scope.videoFormats = $stateParams.videoFormats;
-	video_Formats = $stateParams.videoFormats;
+	var videoFormats = {};
+	
+	angular.forEach($stateParams.videoFormats, function(formats, key) {
+		if (key === "video" || key.startsWith("dash-")) {
+			angular.forEach(formats, function(formatInfo, formatCode) {
+				videoFormats[formatCode] = formatInfo;
+			});
+		}
+	});
+	$scope.videoFormats = videoFormats;
+	video_Formats = $scope.videoFormats;
 	
 	$scope.filterVideoFormats = function(items) {
 		var filteredVideoFormats = {};
 		angular.forEach(items, function(value, key) {
-			if (key.startsWith('hls-')) {
+			if (key.startsWith('hls-') || key.startsWith('dash-')) {
 				filteredVideoFormats[key] = value;
 			}
 		});
 		return filteredVideoFormats;
 	}
+
 	
 	$scope.onFormatChange = function() {
 		var element = document.getElementById("defFormat");
@@ -431,17 +463,40 @@ app.controller("Controller2", function($scope, $state, $stateParams, $http, $tim
 	};
 	
 	$scope.generateVideo = function(){
-		var encodedStreamUrl = encodeURIComponent($stateParams.videoFormats[$scope.selectedFormat]["STREAM-URL"]);
+
+		var videoType = ""; //{ video, audio-only, video-only}
+		selectedFormat = $scope.selectedFormat.split(" ")[0];
+		var videoUrl = encodeURIComponent($stateParams.url);
+		var videoMetadata = JSON.stringify($stateParams.videoFormats["metadata"]);
+		var videoId = $stateParams.videoId;
+		var streamUrl =  encodeURIComponent($scope.videoFormats[selectedFormat]["STREAM-URL"]);
+		var initUrl = "";
+		var playbackUrl = "";
+
+		if(selectedFormat.startsWith("dash-")){
+			//For DASH Audio/Video format
+			videoType = selectedFormat.startsWith("dash-audio") ? "dash-audio" : "dash-video";
+			playbackUrl = encodeURIComponent($scope.videoFormats[selectedFormat]["PLAYBACK-URL"]);
+			initUrl = encodeURIComponent($scope.videoFormats[selectedFormat]["INIT-URL"]);
+			totalSegments = $scope.videoFormats[selectedFormat]["TOTAL-SEGMENTS"];
+		}else if(selectedFormat.startsWith("hls-")){
+			videoType = "video";
+		}
+		
 		$http({
 			url: 'generateVideo.php',
 			method: "POST",
-			data: 'videoUrl=' + $stateParams.url +
-				'&streamUrl=' + encodedStreamUrl +
-				'&videoMetadata=' + JSON.stringify($stateParams.videoFormats["metadata"]) +
-				'&videoId=' + $stateParams.videoId +
-				'&videoFormat=' + $scope.selectedFormat +
-				'&uniqueId=' + ipAddr_userAgent,
-			headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+			data: 'videoType=' + videoType +
+			 '&videoUrl=' + videoUrl +
+			 '&streamUrl=' + streamUrl +
+			 '&playbackUrl=' + playbackUrl +
+			 '&initUrl=' + initUrl +
+			 '&totalSegments=' + totalSegments +
+			 '&videoMetadata=' + videoMetadata +
+			 '&videoId=' + videoId +
+			 '&videoFormat=' + selectedFormat +
+			 '&uniqueId=' + ipAddr_userAgent,
+			 headers: {'Content-Type': 'application/x-www-form-urlencoded'}
 		}).then(
 			function(response) {
 				console.log("generateVideo request completed successfully "+response.data);
