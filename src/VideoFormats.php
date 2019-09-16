@@ -13,18 +13,25 @@ class VideoFormats {
     private $appStateJson;
     private $headers;
     private $playbackUrlData;
+    private $downloadRetries;
 
     public function __construct($videoUrl) {
         //include all files under helper package
         foreach (glob("src/helper/*.php") as $helperFile) {
             require_once ($helperFile);
         }
+        require_once "mpdDashParser.php";
 
         $this->videoUrl = $videoUrl;
         $this->playbackUri = null;
         $this->appState = null;
         $this->appStateJson = null;
         $this->headers = ['Hotstarauth' => generateHotstarAuth() , 'X-Country-Code' => 'IN', 'X-Platform-Code' => 'JIO'];
+        $this->downloadRetries = 0;
+    }
+
+    private function getDownloadRetries() {
+        return $this->downloadRetries++;
     }
 
     private function isValidHotstarUrl() {
@@ -66,10 +73,13 @@ class VideoFormats {
                     $metaData["album_artist"] = $actors;
                 break;
                 case "broadcastDate":
-                    date_default_timezone_set("Asia/Calcutta");
-                    $metaData["creation_time"] = "" . date("Y-m-d H:i:s", $contentValue);
-                    $metaData["year"] = "" . date("Y", $contentValue);
-                    $metaData["date"] = "" . date("Y", $contentValue);
+                    $dtFromBrodcastDate = new DateTime(date("Y-m-d H:i:s", $contentValue*1));
+                    if (!$dtFromBrodcastDate) {
+                        throw new \UnexpectedValueException("Could not parse the date with milliseconds, $contentValue");
+                     }
+                    $metaData["creation_time"] = $dtFromBrodcastDate->format("Y-m-d\TH:i:s.u\Z");
+                    $metaData["year"] = $dtFromBrodcastDate->format("Y");
+                    $metaData["date"] = $dtFromBrodcastDate->format("Y");
                 break;
                 case "drmProtected":
                     $metaData[$contentName] = $contentValue;
@@ -129,12 +139,14 @@ class VideoFormats {
             $metaDataRootKey = str_replace('hotstar.com', '', substr($this->videoUrl, strpos($this->videoUrl, 'hotstar.com')));
 
             $fileContents = file_get_contents($this->videoUrl);
-            file_put_contents("page.html", $fileContents);
 
             if (preg_match('%<script>window.APP_STATE=(.*?)</script>%', $fileContents, $match)) {
                 $this->appState = $match[1];
             }
             else {
+                if($this->getDownloadRetries() <= 5) {
+                    return $this->getAvailableFormats();
+                }
                 throw new Exception("APP_STATE JSON metadata not present in site");
             }
 
@@ -176,15 +188,40 @@ class VideoFormats {
                 throw new Exception("Error processing request for playbackUri");
             }
             $playBackSets = $playbackUriResponseJson["body"]["results"]["playBackSets"];
+            $dashAudioFormats = array();
+            $dashVideoFormats = array();
             foreach($playBackSets as $playBackSet) {
                 if(strpos($playBackSet["playbackUrl"], "master.m3u8") !== false) {
                     $playbackUrlresponse = make_get_request($playBackSet["playbackUrl"], $this->headers);
                     $playbackUrlData = $this->getPlaybackUrlData($playBackSet["playbackUrl"]);
                     $url_formats = array_merge_recursive($url_formats, parseM3u8Content($playbackUrlresponse, $playBackSet["playbackUrl"], $playbackUrlData));
+                }else{
+                    $playbackUrlresponse = make_get_request($playBackSet["playbackUrl"], $this->headers);
+                    $dashAudioOrVideoFormats = getDashAudioOrVideoFormats($playbackUrlresponse, $playBackSet["playbackUrl"]);
+                    foreach($dashAudioOrVideoFormats as $dashAvKey => $dashAvValue) {
+                        if(strcmp($dashAvKey, "video") === 0){
+                            //Handle video DASH formats here
+                            foreach($dashAvValue as $dashVideoFormatId => $dashVideoFormatInfo){
+                                if(!array_key_exists($dashVideoFormatId, $dashVideoFormats)){
+                                    $dashVideoFormats[$dashVideoFormatId] = array();
+                                }
+                                $dashVideoFormats[$dashVideoFormatId][] = $dashVideoFormatInfo;
+                            }
+                        } else {
+                            //Handle audio DASH formats here
+                            foreach($dashAvValue as $dashAudioFormatId => $dashAudioFormatInfo){
+                                if(!array_key_exists($dashAudioFormatId, $dashAudioFormats)){
+                                    $dashAudioFormats[$dashAudioFormatId] = array();
+                                }
+                                $dashAudioFormats[$dashAudioFormatId][] = $dashAudioFormatInfo;
+                            }
+                        }
+                    }
                 }
             }
             
             $tmp_url_formats = array();
+            //Iterate video formats
             foreach($url_formats as $url_formats_key => $url_formats_value)  {
                 if(is_array($url_formats_value["STREAM-URL"])) {
                     $size = count($url_formats_value["STREAM-URL"]);
@@ -199,8 +236,46 @@ class VideoFormats {
                     $tmp_url_formats[$url_formats_key] = $url_formats_value;
                 }
             }
-            $url_formats = $tmp_url_formats;            
             
+            $url_formats = array();
+            
+            $url_formats["video"] = $tmp_url_formats;
+            
+            //Iterate dash video formats
+            $tmp_url_formats = array();
+            foreach($dashAudioFormats as $dashAFormats){
+                $formatPrefix ="dash-audio";
+                $kFormNumber = $dashAFormats[0]["K-FORM-NUMBER"];
+                if(count($dashAFormats) > 1){
+                    $fCounter = 0;
+                    foreach($dashAFormats as $dashAFormatInfo){
+                        $tmp_url_formats["$formatPrefix-$kFormNumber-$fCounter"] = $dashAFormatInfo;
+                        $fCounter++;
+                    }
+                } else {
+                    $tmp_url_formats["$formatPrefix-$kFormNumber"] = $dashAFormats[0];
+                }
+            }
+            $url_formats["dash-audio"] = $tmp_url_formats;
+            
+            //Iterate dash video formats
+            $tmp_url_formats = array();
+            foreach($dashVideoFormats as $dashVFormats){
+                $formatPrefix ="dash-video";
+                $kFormNumber = $dashVFormats[0]["K-FORM-NUMBER"];
+                if(count($dashVFormats) > 1){
+                    $fCounter = 0;
+                    foreach($dashVFormats as $dashVFormatInfo){
+                        $tmp_url_formats["$formatPrefix-$kFormNumber-$fCounter"] = $dashVFormatInfo;
+                        $fCounter++;
+                    }
+                } else {
+                    $tmp_url_formats["$formatPrefix-$kFormNumber"] = $dashVFormats[0];
+                }
+            }
+            $url_formats["dash-video"] = $tmp_url_formats;
+                    
+            //API v1.0
             /*$playbackUrl = $playbackUriResponseJson["body"]["results"]["item"]["playbackUrl"];
             echo PHP_EOL.PHP_EOL."playbackUrl :".$playbackUrl.PHP_EOL.PHP_EOL;
             $this->playbackUrlData = $this->getPlaybackUrlData($playbackUrl);

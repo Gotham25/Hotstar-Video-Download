@@ -1,87 +1,168 @@
 <?php
 
-require 'vendor/autoload.php';
+require_once "dashFileDownloader.php";
+require_once "vendor/autoload.php";
 use Symfony\Component\Process\Process;
 
 ini_set("max_execution_time", 30 * 60); //increase the max_execution_time to max of dyno inactivity time interval
-if (isset($_POST['videoUrl'])) {
-    $videoUrl = $_POST['videoUrl'];
-    $streamUrl = $_POST['streamUrl'];
-    $videoMetadata = $_POST['videoMetadata'];
-    $videoId = $_POST['videoId'];
-    $selectedFormat = $_POST['videoFormat'];
-    $ipAddr_userAgent = $_POST['uniqueId'];
+if (isset($_POST['videoType'])) {
+
+    if(extract($_POST)<=0){
+        die("Invalid POST parameters passed...");
+    }
 
     $videoMetadataJson = json_decode($videoMetadata, true);
 
     //Send the response to client and proceed with video generation
     respondOK();
 
-    $videoGenerationCommand = array();
-    array_push($videoGenerationCommand, getcwd() . "/ffmpeg");
-    array_push($videoGenerationCommand, "-i");
-    array_push($videoGenerationCommand, $streamUrl);
+    if(strcmp($videoType, "video") === 0){
+        //For normal video
 
-    $outputFileName = $videoId . ".mp4";
-
-    foreach ($videoMetadataJson as $metaDataName => $metaDataValue) {
-        if ($metaDataName == "title") {
-            $outputFileName = removeSpecialChars($metaDataValue) . ".mp4";
+        $videoGenerationCommand = array();
+        array_push($videoGenerationCommand, getcwd() . DIRECTORY_SEPARATOR . "ffmpeg");
+        array_push($videoGenerationCommand, "-i");
+        array_push($videoGenerationCommand, $streamUrl);
+    
+        $outputFileName = "$videoId.mp4";
+    
+        foreach ($videoMetadataJson as $metaDataName => $metaDataValue) {
+            if ($metaDataName == "title") {
+                $outputFileName = "$videoId-" . removeSpecialChars($metaDataValue) . ".mp4";
+            }
+            array_push($videoGenerationCommand, "-metadata");
+            array_push($videoGenerationCommand, "$metaDataName=\"$metaDataValue\"");
         }
-        array_push($videoGenerationCommand, "-metadata");
-        array_push($videoGenerationCommand, $metaDataName . "=\"" . $metaDataValue . "\"");
-    }
-
-    $videoZipCommand = array();
-    array_push($videoZipCommand, "zip");
-    array_push($videoZipCommand, "-D");
-    array_push($videoZipCommand, "-m");
-    array_push($videoZipCommand, "-9");
-    array_push($videoZipCommand, "-v");
-    array_push($videoZipCommand, $videoId . ".zip");
-    array_push($videoZipCommand, $outputFileName);
-
-    array_push($videoGenerationCommand, "-c");
-    array_push($videoGenerationCommand, "copy");
-    array_push($videoGenerationCommand, $outputFileName);
-
-    $process = new Process($videoGenerationCommand);
-    $process->setTimeout(30 * 60); //wait for atleast dyno inactivity time for the process to complete
-    $process->start();
-
-    foreach ($process as $type => $data) {
+    
+        $videoZipCommand = array();
+        array_push($videoZipCommand, "zip");
+        array_push($videoZipCommand, "-D");
+        array_push($videoZipCommand, "-m");
+        array_push($videoZipCommand, "-9");
+        array_push($videoZipCommand, "-v");
+        array_push($videoZipCommand, "$videoId.zip");
+        array_push($videoZipCommand, $outputFileName);
+    
+        array_push($videoGenerationCommand, "-c");
+        array_push($videoGenerationCommand, "copy");
+        array_push($videoGenerationCommand, $outputFileName);
+    
+        $process = new Process($videoGenerationCommand);
+        $process->setTimeout(30 * 60); //wait for atleast dyno inactivity time for the process to complete
+        $process->start();
+    
+        foreach ($process as $type => $data) {
+            $progress = array();
+            $progress['videoId'] = $videoId;
+            $progress['data'] = nl2br($data);
+            sendProgressToClient($progress, $uniqueId);
+        }
+    
+        $process = new Process($videoZipCommand);
+        $process->setTimeout(30 * 60); //wait for atleast dyno inactivity time for the process to complete
+        $process->start();
+    
+        foreach ($process as $type => $data) {
+            $progress = array();
+            $progress['videoId'] = $videoId;
+            $progress['data'] = nl2br($data);
+            sendProgressToClient($progress, $uniqueId);
+        }
+    
         $progress = array();
         $progress['videoId'] = $videoId;
-        $progress['data'] = nl2br($data);
-        sendProgressToClient($progress, $ipAddr_userAgent);
-    }
+        $progress['data'] = nl2br("\nVideo generation complete...");
+    
+        sendProgressToClient($progress, $uniqueId);
+    
+    } else if((strcmp($videoType, "dash-audio")===0) || (strcmp($videoType, "dash-video")===0)){
+        //For DASH video (or) DASH audio
+        
+        $tempDashFileDirectory = sprintf("temp_%s_%s", $videoId, $videoFormat);
+        $dashFiles = downloadDashFilesBatch($uniqueId, $videoId, $videoFormat, $playbackUrl, $initUrl, $streamUrl, $totalSegments);
 
-    $process = new Process($videoZipCommand);
-    $process->setTimeout(30 * 60); //wait for atleast dyno inactivity time for the process to complete
-    $process->start();
+        $dashAVGenerationCommand = array();
+        array_push($dashAVGenerationCommand, getcwd() . DIRECTORY_SEPARATOR . "ffmpeg");
+        array_push($dashAVGenerationCommand, "-i");
+        $ffmpegInput = "concat:";
+        foreach($dashFiles as $index => $dashFile){
+            if($index !== 0){
+                $ffmpegInput .= "|";
+            }
+            $ffmpegInput .= $dashFile;
+        }
 
-    foreach ($process as $type => $data) {
+        array_push($dashAVGenerationCommand, $ffmpegInput);
+
+        $outputFileName = "$videoId\__$videoType.mp4";
+    
+        foreach ($videoMetadataJson as $metaDataName => $metaDataValue) {
+            if ($metaDataName == "title") {
+                $outputFileName = $videoId."_". removeSpecialChars($metaDataValue) . "__$videoType.mp4";
+            }
+            array_push($dashAVGenerationCommand, "-metadata");
+            array_push($dashAVGenerationCommand, "$metaDataName=\"$metaDataValue\"");
+        }
+        array_push($dashAVGenerationCommand, "-c");
+        array_push($dashAVGenerationCommand, "copy");
+        array_push($dashAVGenerationCommand, "-y");
+        array_push($dashAVGenerationCommand, $outputFileName);
+
+        $process = new Process($dashAVGenerationCommand);
+        $process->setTimeout(30 * 60); //wait for atleast dyno inactivity time for the process to complete
+        $process->start();
+        
+        foreach ($process as $type => $data) {
+            $progress = array();
+            $progress['videoId'] = $videoId;
+            $progress['data'] = nl2br(PHP_EOL.$data);
+            sendProgressToClient($progress, $uniqueId);
+        }
+
+        //remove the temp directory as we have the final DASH audio/video file
         $progress = array();
         $progress['videoId'] = $videoId;
-        $progress['data'] = nl2br($data);
-        sendProgressToClient($progress, $ipAddr_userAgent);
+        $progress['data'] = nl2br("\nRemoving temp directory $tempDashFileDirectory");
+        sendProgressToClient($progress, $uniqueId);
+
+        rrmdir($tempDashFileDirectory);
+        
+        $progress = array();
+        $progress['videoId'] = $videoId;
+        $progress['data'] = nl2br("\nTemp directory $tempDashFileDirectory, successfully removed");
+        sendProgressToClient($progress, $uniqueId);
+
+        $dashAVZipCommand = array();
+        array_push($dashAVZipCommand, "zip");
+        array_push($dashAVZipCommand, "-D");
+        array_push($dashAVZipCommand, "-m");
+        array_push($dashAVZipCommand, "-9");
+        array_push($dashAVZipCommand, "-v");
+        array_push($dashAVZipCommand, "$videoId.zip");
+        array_push($dashAVZipCommand, $outputFileName);
+
+        $process = new Process($dashAVZipCommand);
+        $process->setTimeout(30 * 60); //wait for atleast dyno inactivity time for the process to complete
+        $process->start();
+        
+        foreach ($process as $type => $data) {
+            $progress = array();
+            $progress['videoId'] = $videoId;
+            $progress['data'] = nl2br(PHP_EOL.$data);
+            sendProgressToClient($progress, $uniqueId);
+        }
+
+        $progress = array();
+        $progress['videoId'] = $videoId;
+        $progress['data'] = nl2br("\nDASH audio/video generation complete...");
+        sendProgressToClient($progress, $uniqueId);
+
+    } else {
+        die("video format type unknown");
     }
-
-    $progress = array();
-    $progress['videoId'] = $videoId;
-    $progress['data'] = nl2br("\nVideo generation complete...");
-
-    sendProgressToClient($progress, $ipAddr_userAgent);
-
-}
-else {
+} else {
     echo "Invalid script invocation";
-    $ipAddr_userAgent = $_POST['uniqueId'];
-    $progress = array();
-    $progress['hasProgress'] = 'false';
-    $progress['data'] = nl2br("Error occurred in receiving the post form data from the client");
-
-    sendProgressToClient($progress, $ipAddr_userAgent);
+    die("Invalid script invocation");
 }
 
 function removeSpecialChars($string) {
