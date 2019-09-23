@@ -5,35 +5,34 @@ require_once ("src/helper/utils.php");
 use PHPUnit\Framework\TestCase;
 
 class utilsTest extends TestCase {
-    /**
-     * @expectedException InvalidArgumentException
-     * @expectedExceptionMessage Invalid parameter type passed. Parameter should be integer
-     */
-    function testKForm_InvalidNumber_ProducesInvalidArgumentException() {
+    
+    public function testKForm_InvalidNumber_ProducesInvalidArgumentException() {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage("Invalid parameter type passed. Parameter should be integer");
         getKForm("blah");
     }
 
-    function testKForm_ValidNumberLessThanThousand_ProducesCorrectKForm() {
+    public function testKForm_ValidNumberLessThanThousand_ProducesCorrectKForm() {
         $this->assertEquals(123, getKForm(123));
     }
 
-    function testKForm_ValidNumberGreaterThanThousand_ProducesCorrectKForm() {
+    public function testKForm_ValidNumberGreaterThanThousand_ProducesCorrectKForm() {
         $this->assertEquals(1234, getKForm(1234567));
     }
 
-    function testStartsWith_ValidNeedleWithHaystack_ProducesBooleanOutput() {
+    public function testStartsWith_ValidNeedleWithHaystack_ProducesBooleanOutput() {
         $this->assertTrue(startsWith("This is a sample text", "This"));
     }
 
-    function testStartsWith_ValidNeedleWithInvalidHaystack_ProducesBooleanOutput() {
+    public function testStartsWith_ValidNeedleWithInvalidHaystack_ProducesBooleanOutput() {
         $this->assertFalse(startsWith("This is a sample text", "this"));
     }
 
-    function testMakeGetRequest_InvalidUrlWithoutHeaders_ProducesErrorOutput() {
+    public function testMakeGetRequest_InvalidUrlWithoutHeaders_ProducesErrorOutput() {
         $this->assertEquals("cURL error 7: Failed to connect to www.blah.com port 80: Connection timed out (see http://curl.haxx.se/libcurl/c/libcurl-errors.html)", make_get_request("www.blah.com"));
     }
 
-    function testMakeGetRequest_ValidUrlWithHeaders_ProducesCorrectOutput() {
+    public function testMakeGetRequest_ValidUrlWithHeaders_ProducesCorrectOutput() {
         $headers = ['Hotstarauth' => generateHotstarAuth() , 'X-Country-Code' => 'IN', 'X-Platform-Code' => 'JIO'];
 
         $expectedResponse = "<HTML><HEAD>\n";

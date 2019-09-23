@@ -1,4 +1,4 @@
-<phpunit backupGlobals="true" bootstrap="tests/bootstrap.php">
+<phpunit colors="true" verbose="true" backupGlobals="true" bootstrap="tests/bootstrap.php">
 
 	<filter>
 		<whitelist processUncoveredFilesFromWhitelist="true">
@@ -6,10 +6,12 @@
 		</whitelist>
 	</filter>
 	
-	<testsuite name="Unit Test">
-		<directory>tests/</directory>
-	</testsuite>
-
+	<testsuites>
+		<testsuite name="Unit Test">
+			<directory>tests/</directory>
+		</testsuite>
+	</testsuites>
+	
 	<logging>
         <log type="coverage-html" target="build/logs/html/"/>
 		<log type="coverage-xml" target="build/logs/code_coverage.xml/"/>
