@@ -3,24 +3,23 @@
 require_once("src/helper/m3u8Parser.php");
 use PHPUnit\Framework\TestCase;
 
-class m3u8ParserTest extends TestCase
+class M3u8ParserTest extends TestCase
 {
 
 	protected static $m3u8TestCasesContents;
 
-	public static function setUpBeforeClass() {
+	public static function setUpBeforeClass(): void {
 
 		self::$m3u8TestCasesContents = [];
 		$contentCount = 0;
-		//Get all testCase files in current directory
-		foreach (glob(dirname(__FILE__)."/*.txt") as $m3u8File) {
+		//Get all testCase m3u8 files in resources directory
+		foreach (glob(dirname(__FILE__).DIRECTORY_SEPARATOR."resources".DIRECTORY_SEPARATOR."*.m3u8") as $m3u8File) {
 			$fileContents = file_get_contents($m3u8File);
 			self::$m3u8TestCasesContents[$contentCount++] = $fileContents;
 		}
 	}
 
-	function testm3u8Parser_ValidM3u8Content1_ProducesVideoFormats()
-    {
+	public function testm3u8Parser_ValidM3u8Content1_ProducesVideoFormats() {
     	$playbackUrl = "https://hssouthsp-vh.akamaihd.net/i/videos/vijay_hd/chinnathambi/149/master_,106,180,400,800,1300,2000,3000,4500,kbps.mp4.csmil/master.m3u8?hdnea=st=1551575624~exp=1551577424~acl=/*~hmac=3d89f2aab02315ee100156209746e0e9f3bc70b0b52c17573300b5caa517cfd6";
     	$playbackUrlData = "hdnea=st=1551575624~exp=1551577424~acl=/*~hmac=3d89f2aab02315ee100156209746e0e9f3bc70b0b52c17573300b5caa517cfd6";
     	$expectedM3u8ParsedContent = [
@@ -83,8 +82,7 @@ class m3u8ParserTest extends TestCase
     	$this->assertEquals($expectedM3u8ParsedContent, $actualM3u8ParsedContent);
     }
 
-    function testm3u8Parser_ValidM3u8Content2_ProducesVideoFormats()
-    {
+    public function testm3u8Parser_ValidM3u8Content2_ProducesVideoFormats() {
     	$playbackUrl = "https://hsdesinova.akamaized.net/video/vijay_hd/chinnathambi/92df3509e0/337/master.m3u8?hdnea=st=1551575720~exp=1551577520~acl=/*~hmac=75f2905ca5d5f79a674205e3e0e25b622ff9d08f77dbc2d50374d70ddb706669";
     	$playbackUrlData = "hdnea=st=1551575720~exp=1551577520~acl=/*~hmac=75f2905ca5d5f79a674205e3e0e25b622ff9d08f77dbc2d50374d70ddb706669";
     	$expectedM3u8ParsedContent = [
@@ -163,11 +161,9 @@ class m3u8ParserTest extends TestCase
 
     	$actualM3u8ParsedContent = parseM3u8Content(self::$m3u8TestCasesContents[1], $playbackUrl, $playbackUrlData);
     	$this->assertEquals($expectedM3u8ParsedContent, $actualM3u8ParsedContent);
-    }
+	}
 
-
-    function testm3u8Parser_ValidM3u8Content3_ProducesVideoFormats()
-    {
+    public function testm3u8Parser_ValidM3u8Content3_ProducesVideoFormats() {
     	$playbackUrl = "https://hses.akamaized.net/videos/vijay_hd/chinnathambi/0b3c2675ea/362/1100017417/phone/master.m3u8?hdnea=st=1551575749~exp=1551577549~acl=/*~hmac=45b40d19a096f5a9e1d0eb68c2c9577ae349443dde273a9ce393f17686badcb7";
     	$playbackUrlData = "hdnea=st=1551575749~exp=1551577549~acl=/*~hmac=45b40d19a096f5a9e1d0eb68c2c9577ae349443dde273a9ce393f17686badcb7";
     	$expectedM3u8ParsedContent = [
