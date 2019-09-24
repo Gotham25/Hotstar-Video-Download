@@ -9,7 +9,7 @@
     "gotham25/doctrine-common": "dev-master"
   },
   "require-dev": {
-    "phpunit/phpunit": "^5",
+    "phpunit/phpunit": "^8",
     "php-coveralls/php-coveralls": "^2.1",
     "codacy/coverage": "^1.4"
   }
