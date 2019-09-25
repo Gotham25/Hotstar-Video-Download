@@ -18,7 +18,6 @@ function readVideoChunk($handle, $chunkSize) {
 }
 
 if ($argc === 3) {
-
     $authCode = $argv[1];
     $videoFileName = $argv[2];
     $client = new Google_Client();
@@ -79,20 +78,13 @@ if ($argc === 3) {
 
         if ($result == true) {
             echo PHP_EOL . "File uploaded successfully" . PHP_EOL;
-        }
-        else {
+        } else {
             echo PHP_EOL . "Error occurred in uploading file to drive" . PHP_EOL;
         }
-
-    }
-    catch(Exception $e) {
+    } catch (Exception $e) {
         $client->revokeToken();
         echo "Error occurred. Error Message : " . $e->getMessage();
     }
-
-}
-else {
+} else {
     die("Invalid invocation of script");
 }
-
-?>

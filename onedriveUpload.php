@@ -10,7 +10,6 @@ use Krizalys\Onedrive\Client as KrizalysOnedriveClient;
 use Microsoft\Graph\Graph as MicrosoftGraph;
 
 if ($argc === 3) {
-
     $authCode = $argv[1];
     $videoFile = $argv[2];
 
@@ -19,8 +18,7 @@ if ($argc === 3) {
     $onedriveRedirectUri = getenv("ONEDRIVE_REDIRECT_URI");
 
     try {
-
-        $client = new KrizalysOnedriveClient($onedriveClientId, new MicrosoftGraph() , new GuzzleHttpClient());
+        $client = new KrizalysOnedriveClient($onedriveClientId, new MicrosoftGraph(), new GuzzleHttpClient());
 
         // Gets a log in URL with sufficient privileges from the OneDrive API.
         $url = $client->getLogInUrl(['files.read', 'files.read.all', 'files.readwrite', 'files.readwrite.all', 'offline_access', ], $onedriveRedirectUri);
@@ -59,19 +57,12 @@ if ($argc === 3) {
             $uploadSession = $hotstarVideosRoot->startUpload($videoFile, $fileContents, ["range_size" => $optimalChunkSize]);
             $uploadedFile = $uploadSession->complete();
             echo PHP_EOL . "File $videoFile uploaded successfully to Onedrive" . PHP_EOL;
-        }
-        else {
+        } else {
             throw new Exception("No personal drive named as 'personal' found");
         }
-
-    }
-    catch(Exception $e) {
+    } catch (Exception $e) {
         echo "Error occurred for Onedrive Upload. Error Message : " . $e->getMessage();
     }
-
-}
-else {
+} else {
     die("Invalid invocation of script");
 }
-
-?>

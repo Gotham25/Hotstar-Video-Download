@@ -1,5 +1,6 @@
 <?php
 use PHPUnit\Framework\TestCase;
+
 require_once "src/VideoFormats.php";
 
 class VideoFormatsTest extends TestCase {
@@ -25,7 +26,7 @@ class VideoFormatsTest extends TestCase {
     }
 
     private function getActualFormats() {
-        return json_decode($this->videoFormats->getAvailableFormats() , true);
+        return json_decode($this->videoFormats->getAvailableFormats(), true);
     }
 
     public function testGetAvailableFormats_WithoutDashVideoFormats_ProducesCorrectVideoFormats() {
@@ -98,8 +99,8 @@ class VideoFormatsTest extends TestCase {
         ];
         $actualFormats = $this->getActualFormats();
         $this->assertEquals(6, count($actualFormats));
-        foreach($actualFormats as $videoType => $formats) {
-            if((strcmp($videoType, "video")==0) || startsWith($videoType, "dash-")){
+        foreach ($actualFormats as $videoType => $formats) {
+            if ((strcmp($videoType, "video")==0) || startsWith($videoType, "dash-")) {
                 foreach ($formats as $formatCode => $formatInfo) {
                     $this->assertEquals($expectedFormats[$videoType][$formatCode], $formatInfo["RESOLUTION"]);
                 }
@@ -108,36 +109,32 @@ class VideoFormatsTest extends TestCase {
     }
 
     public function testGetAvailableFormats_VideoFormats_Produces404Error() {
-
         $actualFormats = $this->getActualFormats();
 
         $this->assertTrue($actualFormats["isError"]);
         $this->assertEquals("file_get_contents(https://www.hotstar.com/sports/football/arsenal-vs-liverpool/2001707928): failed to open stream: HTTP request failed! HTTP/1.0 404 Not Found", str_replace(array(
             "\n",
             "\r"
-        ) , '', $actualFormats["errorMessage"]));
+        ), '', $actualFormats["errorMessage"]));
     }
 
     public function testGetAvailableFormats_VideoFormats_ProducesDRMProtectedError() {
-
         $actualFormats = $this->getActualFormats();
 
         $this->assertTrue($actualFormats["isError"]);
         $this->assertEquals("The video is DRM Protected", str_replace(array(
             "\n",
             "\r"
-        ) , '', $actualFormats["errorMessage"]));
+        ), '', $actualFormats["errorMessage"]));
     }
 
     public function testGetAvailableFormats_VideoFormats_ProducesInvalidUrlError() {
-
         $actualFormats = $this->getActualFormats();
 
         $this->assertTrue($actualFormats["isError"]);
         $this->assertEquals("Invalid Hotstar video URL", str_replace(array(
             "\n",
             "\r"
-        ) , '', $actualFormats["errorMessage"]));
+        ), '', $actualFormats["errorMessage"]));
     }
-
 }

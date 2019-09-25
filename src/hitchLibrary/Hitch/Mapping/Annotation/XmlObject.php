@@ -16,9 +16,8 @@ use Doctrine\Common\Annotations\Annotation;
 /**
  * XmlObject maps a class to XML by letting Hitch know that the annotated
  * class should be parsed for additional annotations
- * 
+ *
  * @author marc
  */
-class XmlObject extends Annotation
-{
+class XmlObject extends Annotation {
 }

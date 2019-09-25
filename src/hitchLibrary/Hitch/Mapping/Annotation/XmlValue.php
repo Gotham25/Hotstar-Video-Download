@@ -15,10 +15,8 @@ use Doctrine\Common\Annotations\Annotation;
 
 /**
  * XmlValue maps a entity property to an XML node value
- * 
+ *
  * @author marc
  */
-class XmlValue extends Annotation
-{
-
+class XmlValue extends Annotation {
 }

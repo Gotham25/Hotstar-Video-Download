@@ -13,5 +13,3 @@ $client->setIncludeGrantedScopes(true);
 $auth_url = $client->createAuthUrl();
 $sanitized_auth_url = filter_var($auth_url, FILTER_SANITIZE_URL);
 header('Location: ' . $sanitized_auth_url);
-
-?>

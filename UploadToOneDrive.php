@@ -29,9 +29,7 @@ if (isset($_POST)) {
         $progress['data'] = nl2br($data);
         sendProgressToClient($progress, $ipAddr_userAgent);
     }
-
-}
-else {
+} else {
     die("Invalid script invocation. Error : No POST data given");
 }
 
@@ -80,7 +78,6 @@ function respondOK($text = null) {
 }
 
 function sendProgressToClient($progress, $ipAddr_userAgent) {
-
     $options = array(
         'cluster' => 'ap2',
         'encrypted' => true
@@ -91,7 +88,4 @@ function sendProgressToClient($progress, $ipAddr_userAgent) {
     $message['message'] = $progress;
 
     $pusher->trigger('hotstar-video-download-v1', $ipAddr_userAgent, $message);
-
 }
-
-?>

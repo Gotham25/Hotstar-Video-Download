@@ -97,7 +97,4 @@
         public function setRepresentations($representations) {
             $this->representations = $representations;
         }
-
     }
-
-?>

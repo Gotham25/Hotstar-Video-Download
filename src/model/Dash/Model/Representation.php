@@ -123,6 +123,4 @@
         public function setAudioChannelConfiguration($audioChannelConfiguration) {
             $this->audioChannelConfiguration = $audioChannelConfiguration;
         }
-
     }
-?>

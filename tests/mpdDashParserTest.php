@@ -5,21 +5,19 @@ use PHPUnit\Framework\TestCase;
 require_once("src".DIRECTORY_SEPARATOR."mpdDashParser.php");
 
 class MpdDashParserTest extends TestCase {
-
     protected static $mpdTestCasesContents;
 
     protected static $playbackUrl;
 
-	public static function setUpBeforeClass(): void {
-
+    public static function setUpBeforeClass(): void {
         self::$mpdTestCasesContents = [];
         self::$playbackUrl = "https://hses1.akamaized.net/videos/vijay_hd/ayutha_ezhuthu/b2f43183e7/57/1100027262/1568917929031/80a7077169517f73ec95efaa3bf0ad40/master.mpd?ladder=phone&hdnea=st=1569344736~exp=1569348336~acl=/*~hmac=ac0904136784be6a7c096e9cc0cf00595454811f010de48b351862d8c5ff2629";
-		$contentCount = 0;
+        $contentCount = 0;
         //Get all testCase xml files in resources directory
-		foreach (glob(dirname(__FILE__).DIRECTORY_SEPARATOR."resources".DIRECTORY_SEPARATOR."*.xml") as $mpdDashFile) {
-			$xmlContents = file_get_contents($mpdDashFile);
-			self::$mpdTestCasesContents[$contentCount++] = $xmlContents;
-		}
+        foreach (glob(dirname(__FILE__).DIRECTORY_SEPARATOR."resources".DIRECTORY_SEPARATOR."*.xml") as $mpdDashFile) {
+            $xmlContents = file_get_contents($mpdDashFile);
+            self::$mpdTestCasesContents[$contentCount++] = $xmlContents;
+        }
     }
 
     private function getExpectedDashFormat1() {
@@ -261,7 +259,4 @@ class MpdDashParserTest extends TestCase {
         $actualDashFormat = getDashAudioOrVideoFormats(self::$mpdTestCasesContents[1], self::$playbackUrl);
         $this->assertEquals($expectedDashFormat, $actualDashFormat);
     }
-    
 }
-
-?>

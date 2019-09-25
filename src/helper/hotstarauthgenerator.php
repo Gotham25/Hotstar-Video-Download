@@ -32,5 +32,3 @@ function generateHotstarAuth() {
     $auth .= "~hmac=" . $sig;
     return $auth;
 }
-
-?>

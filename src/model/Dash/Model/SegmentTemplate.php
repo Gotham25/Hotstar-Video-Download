@@ -72,7 +72,4 @@
         public function setTimescale($timescale) {
             $this->timescale = $timescale;
         }
-
     }
-
-?>

@@ -1,11 +1,10 @@
 <?php
-require_once ("src/helper/hotstarauthgenerator.php");
-require_once ("src/helper/utils.php");
+require_once("src/helper/hotstarauthgenerator.php");
+require_once("src/helper/utils.php");
 
 use PHPUnit\Framework\TestCase;
 
 class utilsTest extends TestCase {
-    
     public function testKForm_InvalidNumber_ProducesInvalidArgumentException() {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage("Invalid parameter type passed. Parameter should be integer");
@@ -49,7 +48,4 @@ class utilsTest extends TestCase {
 
         $this->assertEquals($expectedResponse, $actualResponse);
     }
-
 }
-
-?>
