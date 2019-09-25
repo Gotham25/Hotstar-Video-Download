@@ -3,6 +3,11 @@
 	<filter>
 		<whitelist processUncoveredFilesFromWhitelist="true">
 			<directory>src/</directory>
+			<exclude>
+				<directory>src/hitchLibrary</directory>
+				<directory>src/model</directory>
+				<file>src/ClassLoader.php</file>
+			</exclude>
 		</whitelist>
 	</filter>
 	
