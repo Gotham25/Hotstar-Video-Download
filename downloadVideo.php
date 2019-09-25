@@ -19,5 +19,3 @@ header("Content-Transfer-Encoding: binary");
 header("Content-Length: " . filesize($absoluteFilePath));
 ob_end_flush();
 @readfile($absoluteFilePath);
-
-?>

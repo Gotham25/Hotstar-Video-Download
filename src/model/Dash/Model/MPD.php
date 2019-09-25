@@ -84,7 +84,4 @@
         public function setPeriod($period) {
             $this->period = $period;
         }
-
     }
-
-?>

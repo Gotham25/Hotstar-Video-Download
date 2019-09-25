@@ -33,4 +33,3 @@
             $this->value = $value;
         }
     }
-?>

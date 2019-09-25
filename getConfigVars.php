@@ -5,4 +5,3 @@ $configs = array(
     'dbKey' => $dbApiKey,
 );
 echo json_encode($configs);
-?>

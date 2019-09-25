@@ -6,8 +6,7 @@ use Symfony\Component\Process\Process;
 
 ini_set("max_execution_time", 30 * 60); //increase the max_execution_time to max of dyno inactivity time interval
 if (isset($_POST['videoType'])) {
-
-    if(extract($_POST)<=0){
+    if (extract($_POST)<=0) {
         die("Invalid POST parameters passed...");
     }
 
@@ -16,7 +15,7 @@ if (isset($_POST['videoType'])) {
     //Send the response to client and proceed with video generation
     respondOK();
 
-    if(strcmp($videoType, "video") === 0){
+    if (strcmp($videoType, "video") === 0) {
         //For normal video
 
         $videoGenerationCommand = array();
@@ -74,8 +73,7 @@ if (isset($_POST['videoType'])) {
         $progress['data'] = nl2br("\nVideo generation complete...");
     
         sendProgressToClient($progress, $uniqueId);
-    
-    } else if((strcmp($videoType, "dash-audio")===0) || (strcmp($videoType, "dash-video")===0)){
+    } elseif ((strcmp($videoType, "dash-audio")===0) || (strcmp($videoType, "dash-video")===0)) {
         //For DASH video (or) DASH audio
         
         $tempDashFileDirectory = sprintf("temp_%s_%s", $videoId, $videoFormat);
@@ -85,8 +83,8 @@ if (isset($_POST['videoType'])) {
         array_push($dashAVGenerationCommand, getcwd() . DIRECTORY_SEPARATOR . "ffmpeg");
         array_push($dashAVGenerationCommand, "-i");
         $ffmpegInput = "concat:";
-        foreach($dashFiles as $index => $dashFile){
-            if($index !== 0){
+        foreach ($dashFiles as $index => $dashFile) {
+            if ($index !== 0) {
                 $ffmpegInput .= "|";
             }
             $ffmpegInput .= $dashFile;
@@ -156,7 +154,6 @@ if (isset($_POST['videoType'])) {
         $progress['videoId'] = $videoId;
         $progress['data'] = nl2br("\nDASH audio/video generation complete...");
         sendProgressToClient($progress, $uniqueId);
-
     } else {
         die("video format type unknown");
     }
@@ -168,7 +165,6 @@ if (isset($_POST['videoType'])) {
 function removeSpecialChars($string) {
     $string = str_replace(' ', '_', $string); // Replaces all spaces with underscore.
     return preg_replace('/[^A-Za-z0-9_]/', '', $string); // Removes special chars.
-    
 }
 
 /**
@@ -216,7 +212,6 @@ function respondOK($text = null) {
 }
 
 function sendProgressToClient($progress, $ipAddr_userAgent) {
-
     $options = array(
         'cluster' => 'ap2',
         'encrypted' => true
@@ -227,7 +222,4 @@ function sendProgressToClient($progress, $ipAddr_userAgent) {
     $message['message'] = $progress;
 
     $pusher->trigger('hotstar-video-download-v1', $ipAddr_userAgent, $message);
-
 }
-
-?>

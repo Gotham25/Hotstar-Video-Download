@@ -19,7 +19,4 @@
         public function setAdaptationSets($adaptationSets) {
             $this->adaptationSets = $adaptationSets;
         }
-        
     }
-
-?>

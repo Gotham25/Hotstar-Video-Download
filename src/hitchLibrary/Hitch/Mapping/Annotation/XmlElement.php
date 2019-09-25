@@ -15,11 +15,10 @@ use Doctrine\Common\Annotations\Annotation;
 
 /**
  * XmlElement maps a entity property to an XML node
- * 
+ *
  * @author marc
  */
-class XmlElement extends Annotation
-{
-	public $name;
-	public $type;
+class XmlElement extends Annotation {
+    public $name;
+    public $type;
 }

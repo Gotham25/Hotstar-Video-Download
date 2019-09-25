@@ -15,12 +15,11 @@ use Doctrine\Common\Annotations\Annotation;
 
 /**
  * XmlList maps a property to a collection of XML nodes
- * 
+ *
  * @author marc
  */
-class XmlList extends Annotation
-{
-	public $name;
-	public $type;
-	public $wrapper;
+class XmlList extends Annotation {
+    public $name;
+    public $type;
+    public $wrapper;
 }
