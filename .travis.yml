@@ -28,12 +28,13 @@ after_success:
  - travis_retry php vendor/bin/php-coveralls -v
  - travis_retry php vendor/bin/codacycoverage clover
  - echo $MESSAGE >> build/build.log
+ - zip -v -r -9 -T -m build.zip build
 
 deploy:
  provider: releases
  api_key: $GITHUB_TOKEN
  file_glob: true
- file: build/**/*
+ file: build.zip
  skip_cleanup: true
  on:
     tags: true
