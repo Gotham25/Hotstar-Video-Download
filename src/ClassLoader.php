@@ -1,7 +1,7 @@
 <?php
 
 class ClassLoader {
-    private $namespaces = array();
+    private $namespaces = [];
 
     /**
      * Registers an array of namespaces
@@ -24,7 +24,7 @@ class ClassLoader {
      * @api
      */
     public function register($prepend = false) {
-        spl_autoload_register(array($this, 'loadClass'), true, $prepend);
+        spl_autoload_register([$this, 'loadClass'], true, $prepend);
     }
 
     /**
