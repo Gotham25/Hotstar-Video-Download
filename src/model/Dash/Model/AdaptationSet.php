@@ -31,6 +31,31 @@
          * @xml:XmlAttribute(name="startWithSAP")
          */
         protected $startWithSap;
+
+        /**
+         * @xml:XmlAttribute(name="id")
+         */
+        protected $id;
+
+        /**
+         * @xml:XmlAttribute(name="contentType")
+         */
+        protected $contentType;
+
+        /**
+         * @xml:XmlAttribute(name="frameRate")
+         */
+        protected $frameRate;
+
+        /**
+         * @xml:XmlAttribute(name="subsegmentAlignment")
+         */
+        protected $subsegmentAlignment;
+
+        /**
+         * @xml:XmlAttribute(name="par")
+         */
+        protected $par;
         
         /**
          * @xml:XmlElement(name="SegmentTemplate", type="Dash\Model\SegmentTemplate")
@@ -80,6 +105,46 @@
 
         public function setStartWithSap($startWithSap) {
             $this->startWithSap = $startWithSap;
+        }
+
+        public function getId() {
+            return $this->id;
+        }
+
+        public function setId($id) {
+            $this->id = $id;
+        }
+
+        public function getContentType() {
+            return $this->contentType;
+        }
+
+        public function setContentType($contentType) {
+            $this->contentType = $contentType;
+        }
+
+        public function getFrameRate() {
+            return $this->frameRate;
+        }
+
+        public function setFrameRate($frameRate) {
+            $this->frameRate = $frameRate;
+        }
+
+        public function getSubsegmentAlignment() {
+            return $this->subsegmentAlignment;
+        }
+
+        public function setSubsegmentAlignment($subsegmentAlignment) {
+            $this->subsegmentAlignment = $subsegmentAlignment;
+        }
+
+        public function getPar() {
+            return $this->par;
+        }
+
+        public function setPar($par) {
+            $this->par = $par;
         }
 
         public function getSegmentTemplate() {

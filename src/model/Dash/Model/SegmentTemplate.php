@@ -34,7 +34,8 @@
 
         //TODO: Add getters and setters
         public function getDuration() {
-            return $this->duration;
+            $duration = $this->duration;
+            return ($duration == "") ? "1" : $duration;
         }
 
         public function setDuration($duration) {
@@ -66,7 +67,8 @@
         }
 
         public function getTimescale() {
-            return $this->timescale;
+            $timescale = $this->timescale;
+            return ($timescale == "") ? "1" : $timescale;
         }
 
         public function setTimescale($timescale) {

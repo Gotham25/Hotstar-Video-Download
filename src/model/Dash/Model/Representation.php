@@ -43,6 +43,16 @@
         protected $width;
 
         /**
+         * @xml:XmlAttribute(name="mimeType")
+         */
+        protected $mimeType;
+
+        /**
+         * @xml:XmlAttribute(name="sar")
+         */
+        protected $sar;
+
+        /**
          * @xml:XmlAttribute(name="audioSamplingRate")
          */
         protected $audioSamplingRate;
@@ -51,6 +61,16 @@
          * @xml:XmlElement(name="AudioChannelConfiguration", type="Dash\Model\AudioChannelConfiguration")
          */
         protected $audioChannelConfiguration;
+
+        /**
+         * @xml:XmlElement(name="BaseURL")
+         */
+        protected $baseUrl;
+
+        /**
+         * @xml:XmlElement(name="SegmentBase", type="Dash\Model\SegmentBase")
+         */
+        protected $segmentBase;
 
         public function getBandwidth() {
             return $this->bandwidth;
@@ -116,11 +136,43 @@
             $this->audioSamplingRate = $audioSamplingRate;
         }
 
+        public function getMimeType() {
+            return $this->mimeType;
+        }
+
+        public function setMimeType($mimeType) {
+            $this->mimeType = $mimeType;
+        }
+
+        public function getSar() {
+            return $this->sar;
+        }
+
+        public function setSar($sar) {
+            $this->sar = $sar;
+        }
+
         public function getAudioChannelConfiguration() {
             return $this->audioChannelConfiguration;
         }
 
         public function setAudioChannelConfiguration($audioChannelConfiguration) {
             $this->audioChannelConfiguration = $audioChannelConfiguration;
+        }
+
+        public function getBaseUrl() {
+            return $this->baseUrl;
+        }
+
+        public function setBaseUrl($baseUrl) {
+            $this->baseUrl = $baseUrl;
+        }
+
+        public function getSegmentBase() {
+            return $this->segmentBase;
+        }
+
+        public function setSegmentBase($segmentBase) {
+            $this->segmentBase = $segmentBase;
         }
     }

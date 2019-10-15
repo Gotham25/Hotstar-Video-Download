@@ -33,6 +33,16 @@
         protected $xmlns;
 
         /**
+         * @xml:XmlAttribute(name="xmlns:xsi")
+         */
+        protected $xmlnsXsi;
+
+        /**
+         * @xml:XmlAttribute(name="xsi:schemaLocation")
+         */
+        protected $schemaLocation;
+
+        /**
          * @xml:XmlElement(name="Period", type="Dash\Model\Period")
          */
         protected $period;
@@ -75,6 +85,22 @@
 
         public function setXmlns($xmlns) {
             $this->xmlns = $xmlns;
+        }
+
+        public function getXmlnsXsi() {
+            return $this->xmlnsXsi;
+        }
+
+        public function setXmlnsXsi($xmlnsXsi) {
+            $this->xmlnsXsi = $xmlnsXsi;
+        }
+
+        public function getSchemaLocation() {
+            return $this->schemaLocation;
+        }
+
+        public function setSchemaLocation($schemaLocation) {
+            $this->schemaLocation = $schemaLocation;
         }
 
         public function getPeriod() {
