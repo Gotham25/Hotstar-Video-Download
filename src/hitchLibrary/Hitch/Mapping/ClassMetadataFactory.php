@@ -41,7 +41,7 @@ class ClassMetadataFactory {
      *
      * @var array
      */
-    protected $loadedClasses = array();
+    protected $loadedClasses = [];
 
     /**
      * Required dependencies

@@ -133,9 +133,11 @@ class HitchManager {
             $tempMetaData = $info[1];
 
             $tempXml = $xml->$nodeName;
-            $tempObj = $this->parseObject($tempXml, $tempMetaData);
             $setter = 'set' . ucfirst($property);
-            $obj->$setter($tempObj);
+            if($tempXml !== NULL) {
+                $tempObj = $this->parseObject($tempXml, $tempMetaData);
+                $obj->$setter($tempObj);
+            }
         }
     }
 
