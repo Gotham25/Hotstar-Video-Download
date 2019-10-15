@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Generated with https://github.com/google/shaka-packager version a86a697d8d-release-->
+<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:mpeg:dash:schema:mpd:2011 DASH-MPD.xsd" profiles="urn:mpeg:dash:profile:isoff-on-demand:2011" minBufferTime="PT2S" type="static" mediaPresentationDuration="PT3888.56005859375S">
+  <Period id="0">
+    <AdaptationSet id="0" contentType="video" maxWidth="1920" maxHeight="1080" frameRate="1000000/40000" subsegmentAlignment="true" par="16:9">
+      <Representation id="0" bandwidth="373152" codecs="vp09.00.21.08.01.01.01.02.01" mimeType="video/webm" sar="1:1" width="640" height="360">
+        <BaseURL>video_2.webm</BaseURL>
+        <SegmentBase indexRange="314-17684" timescale="1000000" presentationTimeOffset="7000">
+          <Initialization range="0-313"/>
+        </SegmentBase>
+      </Representation>
+      <Representation id="3" bandwidth="572712" codecs="vp09.00.11.08.01.01.01.02.01" mimeType="video/webm" sar="1:1" width="320" height="180">
+        <BaseURL>video_0.webm</BaseURL>
+        <SegmentBase indexRange="312-17637" timescale="1000000" presentationTimeOffset="7000">
+          <Initialization range="0-311"/>
+        </SegmentBase>
+      </Representation>
+      <Representation id="4" bandwidth="684002" codecs="vp09.00.30.08.01.01.01.02.01" mimeType="video/webm" sar="853:854" width="854" height="480">
+        <BaseURL>video_3.webm</BaseURL>
+        <SegmentBase indexRange="314-17746" timescale="1000000" presentationTimeOffset="7000">
+          <Initialization range="0-313"/>
+        </SegmentBase>
+      </Representation>
+      <Representation id="5" bandwidth="881626" codecs="vp09.00.20.08.01.01.01.02.01" mimeType="video/webm" sar="427:426" width="426" height="240">
+        <BaseURL>video_1.webm</BaseURL>
+        <SegmentBase indexRange="312-17689" timescale="1000000" presentationTimeOffset="7000">
+          <Initialization range="0-311"/>
+        </SegmentBase>
+      </Representation>
+      <Representation id="6" bandwidth="1300096" codecs="vp09.00.31.08.01.01.01.02.01" mimeType="video/webm" sar="1:1" width="1280" height="720">
+        <BaseURL>video_4.webm</BaseURL>
+        <SegmentBase indexRange="314-17780" timescale="1000000" presentationTimeOffset="7000">
+          <Initialization range="0-313"/>
+        </SegmentBase>
+      </Representation>
+      <Representation id="7" bandwidth="2795682" codecs="vp09.00.40.08.01.01.01.02.01" mimeType="video/webm" sar="1:1" width="1920" height="1080">
+        <BaseURL>video_5.webm</BaseURL>
+        <SegmentBase indexRange="314-17798" timescale="1000000" presentationTimeOffset="7000">
+          <Initialization range="0-313"/>
+        </SegmentBase>
+      </Representation>
+    </AdaptationSet>
+    <AdaptationSet id="1" contentType="audio" subsegmentAlignment="true">
+      <Representation id="1" bandwidth="52792" codecs="opus" mimeType="audio/webm" audioSamplingRate="48000">
+        <AudioChannelConfiguration schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="1"/>
+        <BaseURL>audio_0.webm</BaseURL>
+        <SegmentBase indexRange="322-16881" timescale="1000000" presentationTimeOffset="7000">
+          <Initialization range="0-321"/>
+        </SegmentBase>
+      </Representation>
+      <Representation id="2" bandwidth="100290" codecs="opus" mimeType="audio/webm" audioSamplingRate="48000">
+        <AudioChannelConfiguration schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="2"/>
+        <BaseURL>audio_1.webm</BaseURL>
+        <SegmentBase indexRange="322-17326" timescale="1000000" presentationTimeOffset="7000">
+          <Initialization range="0-321"/>
+        </SegmentBase>
+      </Representation>
+    </AdaptationSet>
+  </Period>
+</MPD>
