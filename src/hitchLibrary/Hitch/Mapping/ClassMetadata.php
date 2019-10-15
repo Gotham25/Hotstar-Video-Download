@@ -34,28 +34,28 @@ class ClassMetadata {
      *
      * @var array
      */
-    protected $attributes = array();
+    protected $attributes = [];
 
     /**
      * Array of child xml elements
      *
      * @var array
      */
-    protected $elements = array();
+    protected $elements = [];
 
     /**
      * Array of embedded ClassMetadata objects
      *
      * @var array
      */
-    protected $embeds = array();
+    protected $embeds = [];
 
     /**
      * Array of xml lists
      *
      * @var array
      */
-    protected $lists = array();
+    protected $lists = [];
 
     /**
      * The value node info
@@ -103,7 +103,7 @@ class ClassMetadata {
      * @param string $nodeName
      */
     public function addAttribute($name, $property, $nodeName) {
-        $this->attributes[$name] = array($property, $nodeName);
+        $this->attributes[$name] = [$property, $nodeName];
     }
 
     /**
@@ -142,7 +142,7 @@ class ClassMetadata {
      * @param ClassMetadata $metadata
      */
     public function addEmbed($nodeName, $property, ClassMetadata $metadata) {
-        $this->embeds[$nodeName] = array($property, $metadata);
+        $this->embeds[$nodeName] = [$property, $metadata];
     }
 
     /**
@@ -163,7 +163,7 @@ class ClassMetadata {
      * @param ClassMetadata $metadata
      */
     public function addList($property, $nodeName, $wrapperNode = null, ClassMetadata $metadata = null) {
-        $this->lists[$nodeName] = array($property, $wrapperNode, $metadata);
+        $this->lists[$nodeName] = [$property, $wrapperNode, $metadata];
     }
 
     /**
