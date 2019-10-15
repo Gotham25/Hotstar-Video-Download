@@ -3,7 +3,7 @@
 require_once("utils.php");
 
 function parseM3u8Content($m3u8Content, $playbackUrl, $playbackUrlData) {
-    $url_formats = array();
+    $url_formats = [];
     $infoArray = null;
 
     foreach (preg_split("/((\r?\n)|(\r\n?))/", $m3u8Content) as $line) {
@@ -12,7 +12,7 @@ function parseM3u8Content($m3u8Content, $playbackUrl, $playbackUrlData) {
             $m3u8InfoArray = preg_split("/,(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/", $m3u8InfoCsv);
             foreach ($m3u8InfoArray as $m3u8Info) {
                 if ($infoArray === null) {
-                    $infoArray = array();
+                    $infoArray = [];
                 }
                 $info = explode("=", $m3u8Info);
                 $infoArray[$info[0]] = $info[1];

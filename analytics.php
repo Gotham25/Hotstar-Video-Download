@@ -56,7 +56,7 @@
     }
 
     function getIpInfo($apiIpInfo) {
-        $ipInfo = array();
+        $ipInfo = [];
         $code = "{";
         $name = "{";
         $native = "{";

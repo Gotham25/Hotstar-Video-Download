@@ -16,11 +16,11 @@ function getDashAudioOrVideoFormats($xmlContent, $masterPlaybackUrl) {
 
     // register namespaces
     $loader = new ClassLoader();
-    $loader->registerNamespaces(array(
+    $loader->registerNamespaces([
         'Hitch'             => realpath(__DIR__.DIRECTORY_SEPARATOR.'hitchLibrary'),    // main Hitch lib
         'Dash\\Model'       => realpath(__DIR__.DIRECTORY_SEPARATOR.'model'),    // dash demo package
         'Doctrine\\Common'  => realpath(__DIR__.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'vendor'.DIRECTORY_SEPARATOR.'gotham25'.DIRECTORY_SEPARATOR.'doctrine-common'.DIRECTORY_SEPARATOR.'lib'),    // Doctrine common library
-    ));
+    ]);
 
     // register the autoloading
     $loader->register();
@@ -34,7 +34,7 @@ function getDashAudioOrVideoFormats($xmlContent, $masterPlaybackUrl) {
 
     // parse the xml content into a dash mpd object
     $mpd = $hitch->unmarshall($xmlContent, "Dash\\Model\\MPD");
-    $audioOrVideo = array();
+    $audioOrVideo = [];
 
     $mediaPresentationDuration = $mpd->getMediaPresentationDuration();
 
@@ -49,24 +49,35 @@ function getDashAudioOrVideoFormats($xmlContent, $masterPlaybackUrl) {
         $adaptationSets = $mpd->getPeriod()->getAdaptationSets();
 
         foreach ($adaptationSets as $adaptationSet) {
-            $duration = $adaptationSet->getSegmentTemplate()->getDuration();
-            $timescale = $adaptationSet->getSegmentTemplate()->getTimescale();
+            $segmentTemplate = $adaptationSet->getSegmentTemplate();
+            $duration = $segmentTemplate->getDuration();
+            $timescale = $segmentTemplate->getTimescale();
             $segmentScale = (float)$duration / (float)$timescale;
             $totalSegments = (int) ceil($totalSeconds / $segmentScale);
 
             $initializationURL = $adaptationSet->getSegmentTemplate()->getInitialization();
             $mediaURL = $adaptationSet->getSegmentTemplate()->getMedia();
 
-            switch ($adaptationSet->getMimeType()) {
+            $mimeTypeOrContentType = $adaptationSet->getMimeType() ?: $adaptationSet->getContentType();
+
+            switch ($mimeTypeOrContentType) {
             case "video/mp4":
-                $audioOrVideo["video"]=array();
+                $audioOrVideo["video"]=[];
                 populateFormatsInfo($audioOrVideo, "video", $adaptationSet, $totalSegments, $initializationURL, $mediaURL, $masterPlaybackUrl);
                 break;
             case "audio/mp4":
-                $audioOrVideo["audio"]=array();
+                $audioOrVideo["audio"]=[];
                 populateFormatsInfo($audioOrVideo, "audio", $adaptationSet, $totalSegments, $initializationURL, $mediaURL, $masterPlaybackUrl);
                 break;
-            default: echo "Invalid MIME Type : " . $adaptationSet->getMimeType();
+            case "video":
+                $audioOrVideo["webm-video"]=[];
+                populateWebmFormatsInfo($audioOrVideo, "webm-video", $adaptationSet, $masterPlaybackUrl);
+                break;
+            case "audio":
+                $audioOrVideo["webm-audio"]=[];
+                populateWebmFormatsInfo($audioOrVideo, "webm-audio", $adaptationSet, $masterPlaybackUrl);
+                break;
+            default: throw new Exception("Invalid MIME Type : " . $adaptationSet->getMimeType());
                 break;
             }
         }
@@ -79,9 +90,39 @@ function getParsedTimeUnit($time) {
     return (strcmp($time, "") == 0) ? 0.0 : (float) $time;
 }
 
+function populateWebmFormatsInfo(&$av, $type, $adaptationSet, $masterPlaybackUrl) {
+    foreach ($adaptationSet->getRepresentations() as $representation) {
+        $formatInfo = [];
+        $bandwidth = (int) $representation->getBandwidth();
+        $formatInfo["BANDWIDTH"] = $bandwidth;
+        
+        $formatInfo["K-FORM-NUMBER"] = sprintf("%d", $bandwidth/1000);
+        $formatInfo["CODECS"] = sprintf("webm_dash container, %s", $representation->getCodecs());
+        $formatInfo["MIME-TYPE"] = $representation->getMimeType();
+        $formatInfo["ID"] = $representation->getId();
+        
+        if (strcmp($type, "webm-video") === 0) {
+            $formatInfo["STREAM"] = "video only";
+            $formatInfo["RESOLUTION"] = sprintf("%sx%s", $representation->getWidth(), $representation->getHeight());
+            $formatInfo["FRAME-RATE"] = eval("return ".($adaptationSet->getFrameRate()).";");
+            $formatInfo["K-FORM"] = sprintf("DASH webm video %dk", $bandwidth/1000);
+        } else {
+            $formatInfo["STREAM"] = "audio only";
+            $formatInfo["SAMPLING-RATE"] = sprintf("(%s Hz)", $representation->getAudioSamplingRate());
+            $formatInfo["K-FORM"] = sprintf("DASH webm audio %dk", $bandwidth/1000);
+            $formatInfo["RESOLUTION"] = sprintf("(%s Hz)", $representation->getAudioSamplingRate());
+        }
+        $url = getURL("master.mpd", $representation->getBaseUrl(), $masterPlaybackUrl);
+        $formatInfo["STREAM-URL"] = $url;
+        $formatInfo["PLAYBACK-URL"] = $url;
+        $formatInfo["WEBMFORMAT"] = true;
+        $av[$type][sprintf("%dk", $bandwidth/1000)] = $formatInfo;
+    }
+}
+
 function populateFormatsInfo(&$av, $type, $adaptationSet, $totalSegments, $initializationURL, $mediaURL, $masterPlaybackUrl) {
     foreach ($adaptationSet->getRepresentations() as $representation) {
-        $formatInfo = array();
+        $formatInfo = [];
         $bandwidth = (int) $representation->getBandwidth();
         $formatInfo["BANDWIDTH"] = $bandwidth;
         
@@ -105,6 +146,7 @@ function populateFormatsInfo(&$av, $type, $adaptationSet, $totalSegments, $initi
         $formatInfo["INIT-URL"] = getURL("\$RepresentationID\$", $representation->getId(), $initializationURL);
         $formatInfo["STREAM-URL"] = getURL("\$RepresentationID\$", $representation->getId(), $mediaURL);
         $formatInfo["PLAYBACK-URL"] = $masterPlaybackUrl;
+        $formatInfo["WEBMFORMAT"] = false;
         $av[$type][sprintf("%dk", $bandwidth/1000)] = $formatInfo;
     }
 }

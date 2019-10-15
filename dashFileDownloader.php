@@ -8,9 +8,9 @@ use GuzzleHttp\Psr7\Response;
 $downloadRetries=0;
 
 function downloadDashFilesBatch($uniqueId, $videoID, $dashAVFormatCode, $playbackURL, $initURL, $streamURL, $totalSegments) {
-    $dashFiles=array();
-    $segmentUrls=array();
-    $segmentFileNames=array();
+    $dashFiles=[];
+    $segmentUrls=[];
+    $segmentFileNames=[];
     $tempFolder = sprintf("temp_%s_%s", $videoID, $dashAVFormatCode);
     $tempDir = getcwd().DIRECTORY_SEPARATOR.$tempFolder;
 
@@ -81,7 +81,7 @@ function downloadDashFile2($uniqueId, $videoID, $segmentUrls, $dashFiles, $segme
           $dashFileSize = $response->getBody()->getSize();
           sendToClient($videoID, PHP_EOL."Dash file, ".$segmentFileNames[$index]." of size $dashFileSize bytes downloaded successfully", $uniqueId);
       },
-      "rejected" => function (Exception $e, $index) use ($dashFiles, $segmentFileNames) {
+      "rejected" => function (Exception $e, $index) use ($uniqueId, $videoID, $segmentFileNames) {
           sendToClient($videoID, PHP_EOL."Error occurred. ".PHP_EOL."Error message: ".$e->getMessage(), $uniqueId);
           exit($e->getMessage());
       },
@@ -136,17 +136,17 @@ function rrmdir($dir) {
 }
 
 function sendToClient($videoId, $data, $uniqueId) {
-    $progress = array();
+    $progress = [];
     $progress['videoId'] = $videoId;
     $progress['data'] = nl2br($data);
     sendDashDownloadProgressToClient($progress, $uniqueId);
 }
 
 function sendDashDownloadProgressToClient($progress, $ipAddr_userAgent) {
-    $options = array(
+    $options = [
        'cluster' => 'ap2',
        'encrypted' => true
-   );
+   ];
 
     $pusher = new Pusher\Pusher('a44d3a9ebac525080cf1', '37da1edfa06cf988f19f', '505386', $options);
 

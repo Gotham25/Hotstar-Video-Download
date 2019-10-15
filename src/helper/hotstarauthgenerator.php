@@ -5,7 +5,7 @@ function generateHotstarAuth() {
     $exp = $st + 6000;
     $auth = "st=$st~exp=$exp~acl=/*";
     $string = mb_convert_encoding($auth, "UTF-8");
-    $secret = array(
+    $secret = [
         0x05,
         0xfc,
         0x1a,
@@ -22,7 +22,7 @@ function generateHotstarAuth() {
         0x75,
         0xf9,
         0xee
-    );
+    ];
 
     $key = "";
     for ($i = 0;$i < sizeof($secret);$i++) {

@@ -15,25 +15,33 @@ if (isset($_POST['videoType'])) {
     //Send the response to client and proceed with video generation
     respondOK();
 
-    if (strcmp($videoType, "video") === 0) {
-        //For normal video
+    if (strcmp($videoType, "video") === 0 || strcmp($videoType, "dash-webm-audio") === 0 || strcmp($videoType, "dash-webm-video") === 0) {
+        //For normal video and dash webm video
 
-        $videoGenerationCommand = array();
+        $videoGenerationCommand = [];
         array_push($videoGenerationCommand, getcwd() . DIRECTORY_SEPARATOR . "ffmpeg");
         array_push($videoGenerationCommand, "-i");
         array_push($videoGenerationCommand, $streamUrl);
     
         $outputFileName = "$videoId.mp4";
+
+        if (strcmp($videoType, "dash-webm-audio") === 0 || strcmp($videoType, "dash-webm-video") === 0) {
+            $outputFileName = "$videoId-$videoType.mp4";
+        }
     
         foreach ($videoMetadataJson as $metaDataName => $metaDataValue) {
             if ($metaDataName == "title") {
-                $outputFileName = "$videoId-" . removeSpecialChars($metaDataValue) . ".mp4";
+                if (strcmp($videoType, "dash-webm-audio") === 0 || strcmp($videoType, "dash-webm-video") === 0) {
+                    $outputFileName = "$videoId-$videoType-" . removeSpecialChars($metaDataValue) . ".mp4";
+                } else {
+                    $outputFileName = "$videoId-" . removeSpecialChars($metaDataValue) . ".mp4";
+                }
             }
             array_push($videoGenerationCommand, "-metadata");
             array_push($videoGenerationCommand, "$metaDataName=\"$metaDataValue\"");
         }
     
-        $videoZipCommand = array();
+        $videoZipCommand = [];
         array_push($videoZipCommand, "zip");
         array_push($videoZipCommand, "-D");
         array_push($videoZipCommand, "-m");
@@ -42,6 +50,10 @@ if (isset($_POST['videoType'])) {
         array_push($videoZipCommand, "$videoId.zip");
         array_push($videoZipCommand, $outputFileName);
     
+        if (strcmp($videoType, "dash-webm-audio") === 0) {
+            array_push($videoGenerationCommand, "-strict");
+            array_push($videoGenerationCommand, "-2");
+        }
         array_push($videoGenerationCommand, "-c");
         array_push($videoGenerationCommand, "copy");
         array_push($videoGenerationCommand, $outputFileName);
@@ -51,7 +63,7 @@ if (isset($_POST['videoType'])) {
         $process->start();
     
         foreach ($process as $type => $data) {
-            $progress = array();
+            $progress = [];
             $progress['videoId'] = $videoId;
             $progress['data'] = nl2br($data);
             sendProgressToClient($progress, $uniqueId);
@@ -62,13 +74,13 @@ if (isset($_POST['videoType'])) {
         $process->start();
     
         foreach ($process as $type => $data) {
-            $progress = array();
+            $progress = [];
             $progress['videoId'] = $videoId;
             $progress['data'] = nl2br($data);
             sendProgressToClient($progress, $uniqueId);
         }
     
-        $progress = array();
+        $progress = [];
         $progress['videoId'] = $videoId;
         $progress['data'] = nl2br("\nVideo generation complete...");
     
@@ -79,7 +91,7 @@ if (isset($_POST['videoType'])) {
         $tempDashFileDirectory = sprintf("temp_%s_%s", $videoId, $videoFormat);
         $dashFiles = downloadDashFilesBatch($uniqueId, $videoId, $videoFormat, $playbackUrl, $initUrl, $streamUrl, $totalSegments);
 
-        $dashAVGenerationCommand = array();
+        $dashAVGenerationCommand = [];
         array_push($dashAVGenerationCommand, getcwd() . DIRECTORY_SEPARATOR . "ffmpeg");
         array_push($dashAVGenerationCommand, "-i");
         $ffmpegInput = "concat:";
@@ -111,26 +123,26 @@ if (isset($_POST['videoType'])) {
         $process->start();
         
         foreach ($process as $type => $data) {
-            $progress = array();
+            $progress = [];
             $progress['videoId'] = $videoId;
             $progress['data'] = nl2br(PHP_EOL.$data);
             sendProgressToClient($progress, $uniqueId);
         }
 
         //remove the temp directory as we have the final DASH audio/video file
-        $progress = array();
+        $progress = [];
         $progress['videoId'] = $videoId;
         $progress['data'] = nl2br("\nRemoving temp directory $tempDashFileDirectory");
         sendProgressToClient($progress, $uniqueId);
 
         rrmdir($tempDashFileDirectory);
         
-        $progress = array();
+        $progress = [];
         $progress['videoId'] = $videoId;
         $progress['data'] = nl2br("\nTemp directory $tempDashFileDirectory, successfully removed");
         sendProgressToClient($progress, $uniqueId);
 
-        $dashAVZipCommand = array();
+        $dashAVZipCommand = [];
         array_push($dashAVZipCommand, "zip");
         array_push($dashAVZipCommand, "-D");
         array_push($dashAVZipCommand, "-m");
@@ -144,13 +156,13 @@ if (isset($_POST['videoType'])) {
         $process->start();
         
         foreach ($process as $type => $data) {
-            $progress = array();
+            $progress = [];
             $progress['videoId'] = $videoId;
             $progress['data'] = nl2br(PHP_EOL.$data);
             sendProgressToClient($progress, $uniqueId);
         }
 
-        $progress = array();
+        $progress = [];
         $progress['videoId'] = $videoId;
         $progress['data'] = nl2br("\nDASH audio/video generation complete...");
         sendProgressToClient($progress, $uniqueId);
@@ -212,10 +224,10 @@ function respondOK($text = null) {
 }
 
 function sendProgressToClient($progress, $ipAddr_userAgent) {
-    $options = array(
+    $options = [
         'cluster' => 'ap2',
         'encrypted' => true
-    );
+    ];
 
     $pusher = new Pusher\Pusher('a44d3a9ebac525080cf1', '37da1edfa06cf988f19f', '505386', $options);
 
