@@ -19,7 +19,6 @@ var durationRegex = /Duration: (\d{2}:\d{2}:\d{2}.\d{2})/g;
 var timeRegex = /time=(\d{2}:\d{2}:\d{2}\.\d{2})/g;
 var sizeRegex = /size=\s*(\d+)kB/g;
 var dashFileSizeRegex = /seg-\d+.m4s of size (\d+) bytes downloaded successfully/g;
-
 // Enable pusher logging - don't include this in production 
 Pusher.logToConsole = false;
 var pusher = new Pusher('a44d3a9ebac525080cf1', {
@@ -60,10 +59,10 @@ var pusherEventCallback = function(pusherEvent) {
 	var videoId = message['videoId'];
 	var videoFileName = videoId + ".zip";
 	serverConsoleOutput += data + "<br/>";
-	if(selectedFormat.startsWith("dash-")) {
-		populateDashAVCompletionProgress(data);
-	} else if(selectedFormat.startsWith("hls-")) {
+	if(selectedFormat.startsWith("hls-") || selectedFormat.startsWith("dash-webm")) {
 		populateVideoCompletionProgress(data);
+	} else if(selectedFormat.startsWith("dash-")) {
+		populateDashAVCompletionProgress(data);
 	} else {
 		//TODO: Handle unsupported formats
 	}
@@ -424,10 +423,22 @@ app.controller("Controller2", function($scope, $state, $stateParams, $http, $tim
 		var playbackUrl = "";
 		if(selectedFormat.startsWith("dash-")) {
 			//For DASH Audio/Video format
-			videoType = selectedFormat.startsWith("dash-audio") ? "dash-audio" : "dash-video";
+			if(selectedFormat.startsWith("dash-audio")) {
+				videoType = "dash-audio";
+			} else if(selectedFormat.startsWith("dash-video")) {
+				videoType = "dash-video";
+			} else if(selectedFormat.startsWith("dash-webm-audio")) {
+				videoType = "dash-webm-audio";
+			} else if(selectedFormat.startsWith("dash-webm-video")) {
+				videoType = "dash-webm-video";
+			}
+			//videoType = selectedFormat.startsWith("dash-audio") ? "dash-audio" : "dash-video";
 			playbackUrl = encodeURIComponent($scope.videoFormats[selectedFormat]["PLAYBACK-URL"]);
 			initUrl = encodeURIComponent($scope.videoFormats[selectedFormat]["INIT-URL"]);
 			totalSegments = $scope.videoFormats[selectedFormat]["TOTAL-SEGMENTS"];
+			if(selectedFormat.startsWith("dash-webm")) {
+				streamUrl = encodeURIComponent($scope.videoFormats[selectedFormat]["PLAYBACK-URL"]);
+			}
 		} else if(selectedFormat.startsWith("hls-")) {
 			videoType = "video";
 		}
