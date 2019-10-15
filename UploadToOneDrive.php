@@ -24,7 +24,7 @@ if (isset($_POST)) {
     $process->start();
 
     foreach ($process as $type => $data) {
-        $progress = array();
+        $progress = [];
         $progress['videoId'] = $videoId;
         $progress['data'] = nl2br($data);
         sendProgressToClient($progress, $ipAddr_userAgent);
@@ -78,10 +78,10 @@ function respondOK($text = null) {
 }
 
 function sendProgressToClient($progress, $ipAddr_userAgent) {
-    $options = array(
+    $options = [
         'cluster' => 'ap2',
         'encrypted' => true
-    );
+    ];
 
     $pusher = new Pusher\Pusher('a44d3a9ebac525080cf1', '37da1edfa06cf988f19f', '505386', $options);
 

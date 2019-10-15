@@ -42,7 +42,7 @@ class VideoFormats {
     }
 
     private function getVideoMetadata($content) {
-        $metaData = array();
+        $metaData = [];
         foreach ($content as $contentName => $contentValue) {
             switch ($contentName) {
 
@@ -116,8 +116,8 @@ class VideoFormats {
     }
 
     public function getAvailableFormats() {
-        $url_formats = array();
-        $videoMetadata = array();
+        $url_formats = [];
+        $videoMetadata = [];
 
         try {
 
@@ -177,11 +177,16 @@ class VideoFormats {
             $playbackUriResponse = make_get_request($url2, $this->headers);
             $playbackUriResponseJson = json_decode($playbackUriResponse, true);
             if ($playbackUriResponseJson["statusCodeValue"] != 200) {
+                if ($this->getDownloadRetries() <= 5) {
+                    return $this->getAvailableFormats();
+                }
                 throw new Exception("Error processing request for playbackUri");
             }
             $playBackSets = $playbackUriResponseJson["body"]["results"]["playBackSets"];
-            $dashAudioFormats = array();
-            $dashVideoFormats = array();
+            $dashAudioFormats = [];
+            $dashVideoFormats = [];
+            $dashWebmAudioFormats = [];
+            $dashWebmVideoFormats = [];
             foreach ($playBackSets as $playBackSet) {
                 if (strpos($playBackSet["playbackUrl"], "master.m3u8") !== false) {
                     $playbackUrlresponse = make_get_request($playBackSet["playbackUrl"], $this->headers);
@@ -195,31 +200,49 @@ class VideoFormats {
                             //Handle video DASH formats here
                             foreach ($dashAvValue as $dashVideoFormatId => $dashVideoFormatInfo) {
                                 if (!array_key_exists($dashVideoFormatId, $dashVideoFormats)) {
-                                    $dashVideoFormats[$dashVideoFormatId] = array();
+                                    $dashVideoFormats[$dashVideoFormatId] = [];
                                 }
                                 $dashVideoFormats[$dashVideoFormatId][] = $dashVideoFormatInfo;
                             }
-                        } else {
+                        } elseif (strcmp($dashAvKey, "audio") === 0) {
                             //Handle audio DASH formats here
                             foreach ($dashAvValue as $dashAudioFormatId => $dashAudioFormatInfo) {
                                 if (!array_key_exists($dashAudioFormatId, $dashAudioFormats)) {
-                                    $dashAudioFormats[$dashAudioFormatId] = array();
+                                    $dashAudioFormats[$dashAudioFormatId] = [];
                                 }
                                 $dashAudioFormats[$dashAudioFormatId][] = $dashAudioFormatInfo;
                             }
+                        } elseif (strcmp($dashAvKey, "webm-video") === 0) {
+                            //Handle DASH Webm video formats here
+                            foreach ($dashAvValue as $dashVideoFormatId => $dashVideoFormatInfo) {
+                                if (!array_key_exists($dashVideoFormatId, $dashWebmVideoFormats)) {
+                                    $dashWebmVideoFormats[$dashVideoFormatId] = [];
+                                }
+                                $dashWebmVideoFormats[$dashVideoFormatId][] = $dashVideoFormatInfo;
+                            }
+                        } elseif (strcmp($dashAvKey, "webm-audio") === 0) {
+                            //Handle DASH Webm video formats here
+                            foreach ($dashAvValue as $dashAudioFormatId => $dashAudioFormatInfo) {
+                                if (!array_key_exists($dashAudioFormatId, $dashWebmAudioFormats)) {
+                                    $dashWebmAudioFormats[$dashAudioFormatId] = [];
+                                }
+                                $dashWebmAudioFormats[$dashAudioFormatId][] = $dashAudioFormatInfo;
+                            }
+                        } else {
+                            throw new Exception("Invalid dashAvKey $dashAvKey");
                         }
                     }
                 }
             }
             
-            $tmp_url_formats = array();
+            $tmp_url_formats = [];
             //Iterate video formats
             foreach ($url_formats as $url_formats_key => $url_formats_value) {
                 if (is_array($url_formats_value["STREAM-URL"])) {
                     $size = count($url_formats_value["STREAM-URL"]);
                     for ($i=0; $i<$size; $i++) {
                         $tmpIndex = "$url_formats_key-$i";
-                        $tmp_url_formats[$tmpIndex] = array();
+                        $tmp_url_formats[$tmpIndex] = [];
                         foreach ($url_formats_value as $k => $v) {
                             $tmp_url_formats[$tmpIndex][$k] = $v[$i];
                         }
@@ -229,12 +252,12 @@ class VideoFormats {
                 }
             }
             
-            $url_formats = array();
+            $url_formats = [];
             
             $url_formats["video"] = $tmp_url_formats;
             
             //Iterate dash video formats
-            $tmp_url_formats = array();
+            $tmp_url_formats = [];
             foreach ($dashAudioFormats as $dashAFormats) {
                 $formatPrefix ="dash-audio";
                 $kFormNumber = $dashAFormats[0]["K-FORM-NUMBER"];
@@ -251,7 +274,7 @@ class VideoFormats {
             $url_formats["dash-audio"] = $tmp_url_formats;
             
             //Iterate dash video formats
-            $tmp_url_formats = array();
+            $tmp_url_formats = [];
             foreach ($dashVideoFormats as $dashVFormats) {
                 $formatPrefix ="dash-video";
                 $kFormNumber = $dashVFormats[0]["K-FORM-NUMBER"];
@@ -266,6 +289,40 @@ class VideoFormats {
                 }
             }
             $url_formats["dash-video"] = $tmp_url_formats;
+            
+            //Iterate dash webm audio formats
+            $tmp_url_formats = [];
+            foreach ($dashWebmAudioFormats as $dashWebmAFormats) {
+                $formatPrefix ="dash-webm-audio";
+                $kFormNumber = $dashWebmAFormats[0]["ID"];
+                if (count($dashWebmAFormats) > 1) {
+                    $fCounter = 0;
+                    foreach ($dashWebmAFormats as $dashWebmAFormatInfo) {
+                        $tmp_url_formats["$formatPrefix-$kFormNumber-$fCounter"] = $dashWebmAFormatInfo;
+                        $fCounter++;
+                    }
+                } else {
+                    $tmp_url_formats["$formatPrefix-$kFormNumber"] = $dashWebmAFormats[0];
+                }
+            }
+            $url_formats["dash-webm-audio"] = $tmp_url_formats;
+            
+            //Iterate dash webm video formats
+            $tmp_url_formats = [];
+            foreach ($dashWebmVideoFormats as $dashWebmVFormats) {
+                $formatPrefix ="dash-webm-video";
+                $kFormNumber = $dashWebmVFormats[0]["ID"];
+                if (count($dashWebmVFormats) > 1) {
+                    $fCounter = 0;
+                    foreach ($dashWebmVFormats as $dashWebmVFormatInfo) {
+                        $tmp_url_formats["$formatPrefix-$kFormNumber-$fCounter"] = $dashWebmVFormatInfo;
+                        $fCounter++;
+                    }
+                } else {
+                    $tmp_url_formats["$formatPrefix-$kFormNumber"] = $dashWebmVFormats[0];
+                }
+            }
+            $url_formats["dash-webm-video"] = $tmp_url_formats;
                     
             //API v1.0
             /*$playbackUrl = $playbackUriResponseJson["body"]["results"]["item"]["playbackUrl"];
