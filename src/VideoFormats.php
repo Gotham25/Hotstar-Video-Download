@@ -25,7 +25,7 @@ class VideoFormats {
         $this->playbackUri = null;
         $this->appState = null;
         $this->appStateJson = null;
-        $this->headers = ['Hotstarauth' => generateHotstarAuth() , 'X-Country-Code' => 'IN', 'X-Platform-Code' => 'JIO'];
+        $this->headers = ['Hotstarauth' => generateHotstarAuth() , 'X-Country-Code' => 'IN', 'X-Platform-Code' => 'JIO', 'Referer' => $videoUrl];
         $this->downloadRetries = 0;
     }
 
