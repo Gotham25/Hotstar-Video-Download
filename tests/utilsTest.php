@@ -32,7 +32,8 @@ class utilsTest extends TestCase {
     }
 
     public function testMakeGetRequest_ValidUrlWithHeaders_ProducesCorrectOutput() {
-        $headers = ['Hotstarauth' => generateHotstarAuth() , 'X-Country-Code' => 'IN', 'X-Platform-Code' => 'JIO'];
+        $videoUrl = "https://hssouthsp-vh.akamaihd.net/i/videos/vijay_hd/chinnathambi/149/master_,106,180,400,800,1300,2000,3000,4500,kbps.mp4.csmil/master.m3u8?hdnea=st=1551575624~exp=1551577424~acl=/*~hmac=3d89f2aab02315ee100156209746e0e9f3bc70b0b52c17573300b5caa517cfd6";
+        $headers = ['Hotstarauth' => generateHotstarAuth() , 'X-Country-Code' => 'IN', 'X-Platform-Code' => 'JIO', 'Referer' => $videoUrl];
 
         $expectedResponse = "<HTML><HEAD>\n";
         $expectedResponse .= "<TITLE>Access Denied</TITLE>\n";
@@ -43,7 +44,7 @@ class utilsTest extends TestCase {
         $expectedResponse .= "</BODY>\n";
         $expectedResponse .= "</HTML>\n";
 
-        $actualResponse = make_get_request("https://hssouthsp-vh.akamaihd.net/i/videos/vijay_hd/chinnathambi/149/master_,106,180,400,800,1300,2000,3000,4500,kbps.mp4.csmil/master.m3u8?hdnea=st=1551575624~exp=1551577424~acl=/*~hmac=3d89f2aab02315ee100156209746e0e9f3bc70b0b52c17573300b5caa517cfd6", $headers);
+        $actualResponse = make_get_request($videoUrl, $headers);
         $actualResponse = substr($actualResponse, 0, strpos($actualResponse, "Reference")) . substr($actualResponse, strpos($actualResponse, "</BODY>"));
 
         $this->assertEquals($expectedResponse, $actualResponse);
