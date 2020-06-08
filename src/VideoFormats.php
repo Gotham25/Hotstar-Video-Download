@@ -11,6 +11,7 @@ class VideoFormats {
     private $appState;
     private $appStateJson;
     private $headers;
+    private $refreshTokenHeaders;
     private $playbackUrlData;
     private $downloadRetries;
 
@@ -26,6 +27,12 @@ class VideoFormats {
         $this->appState = null;
         $this->appStateJson = null;
         $this->headers = ['Hotstarauth' => generateHotstarAuth() , 'X-Country-Code' => 'IN', 'X-Platform-Code' => 'JIO', 'Referer' => $videoUrl];
+        $this->refreshTokenHeaders = [
+            'hotstarauth' =>  generateHotstarAuth(),
+            'userIdentity' => 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJ1bV9hY2Nlc3MiLCJleHAiOjE1OTAzMDE5OTYsImlhdCI6MTU4OTY5NzE5NiwiaXNzIjoiVFMiLCJzdWIiOiJ7XCJoSWRcIjpcIjU5YjkxMTBkMDM2ZjQ3M2U5OTBhNzFiNDAwMDM5MzRkXCIsXCJwSWRcIjpcImVjNmRmY2Y1ZTJhYzRhYWJhZjNjOTBlY2I0YTY5MTVlXCIsXCJuYW1lXCI6XCJHdWVzdCBVc2VyXCIsXCJpcFwiOlwiMjIzLjIyNi4yOS4yMjdcIixcImNvdW50cnlDb2RlXCI6XCJpblwiLFwiY3VzdG9tZXJUeXBlXCI6XCJudVwiLFwidHlwZVwiOlwiZGV2aWNlXCIsXCJpc0VtYWlsVmVyaWZpZWRcIjpmYWxzZSxcImlzUGhvbmVWZXJpZmllZFwiOmZhbHNlLFwiZGV2aWNlSWRcIjpcImExMTg1MTFhLTJmYjktNDhmOS04MGM5LWY1OTlkMjdlYTZmNlwiLFwicHJvZmlsZVwiOlwiQURVTFRcIixcInZlcnNpb25cIjpcInYyXCIsXCJzdWJzY3JpcHRpb25zXCI6e1wiaW5cIjp7fX0sXCJpc3N1ZWRBdFwiOjE1ODk2OTcxOTY2NzJ9IiwidmVyc2lvbiI6IjFfMCJ9.bkx7DodQSFohwmzqf8RmKOr3tuORgVFEh_qbtdqzeVA',
+            'Origin' => 'https://www.hotstar.com',
+            'deviceId' => Ramsey\Uuid\Uuid::uuid4()->toString(),
+        ];
         $this->downloadRetries = 0;
     }
 
@@ -115,6 +122,12 @@ class VideoFormats {
         return count($playbackUrlDataPieces) === 2 ? $playbackUrlDataPieces[1] : "";
     }
 
+    private function getRefreshToken() {
+        $refreshTokenJSON = make_get_request("https://api.hotstar.com/in/aadhar/v2/web/in/user/refresh-token", $this->refreshTokenHeaders);
+        $refreshToken = json_decode($refreshTokenJSON, true);
+        return $refreshToken["description"]["userIdentity"];
+    }
+
     public function getAvailableFormats() {
         $url_formats = [];
         $videoMetadata = [];
@@ -166,7 +179,14 @@ class VideoFormats {
                 }
             }
             
+            $refreshToken = $this->getRefreshToken();
+
+            $this->headers += [
+                "X-HS-UserToken" => $refreshToken["description"]["userIdentity"]
+            ];
+
             $url = $this->playbackUri . "&tas=10000";
+            
             $url2 = "https://api.hotstar.com/h/v2/play/in/contents/" . $videoId . "?";
             $url2 .= "desiredConfig=encryption:plain;ladder:phone,tv;package:hls,dash&";
             $url2 .= "client=mweb&";
@@ -174,15 +194,37 @@ class VideoFormats {
             $url2 .= "deviceId=" . Ramsey\Uuid\Uuid::uuid4()->toString() . "&";
             $url2 .= "osName=Windows&";
             $url2 .= "osVersion=10";
-            $playbackUriResponse = make_get_request($url2, $this->headers);
+
+            $url3 = "https://api.hotstar.com/play/v1/playback/content/$videoId?";
+            $url3 .= "device-id=" . \Ramsey\Uuid\Uuid::uuid4()->toString() ."&";
+            $url3 .= "desired-config=encryption:plain;ladder:phone,tv;package:hls,dash&";
+            $url3 .= "os-name=Windows&";
+            $url3 .= "os-version=10";
+
+            $playbackUriResponse = make_get_request($url3, $this->headers);
             $playbackUriResponseJson = json_decode($playbackUriResponse, true);
-            if ($playbackUriResponseJson["statusCodeValue"] != 200) {
+            /*if ($playbackUriResponseJson["statusCodeValue"] != 200) {
                 if ($this->getDownloadRetries() <= 5) {
                     return $this->getAvailableFormats();
                 }
                 throw new Exception("Error processing request for playbackUri");
+            }*/
+
+            if(strpos($playbackUriResponseJson["message"], "success") === false) {
+                if ($this->getDownloadRetries() <= 5) {
+                    echo "Retrying count " . $this->getDownloadRetries() . ".....";
+                    return $this->getAvailableFormats();
+                }
+                throw new Exception("Error processing request for playbackUri");
             }
-            $playBackSets = $playbackUriResponseJson["body"]["results"]["playBackSets"];
+
+            $this->headers += [
+                "Host" => "hses4.hotstar.com"
+            ];
+
+            //$playBackSets = $playbackUriResponseJson["body"]["results"]["playBackSets"];
+            $playBackSets = $playbackUriResponseJson["data"]["playBackSets"];
+
             $dashAudioFormats = [];
             $dashVideoFormats = [];
             $dashWebmAudioFormats = [];
