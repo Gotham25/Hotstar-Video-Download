@@ -26,7 +26,16 @@ class VideoFormats {
         $this->playbackUri = null;
         $this->appState = null;
         $this->appStateJson = null;
-        $this->headers = ['Hotstarauth' => generateHotstarAuth() , 'X-Country-Code' => 'IN', 'X-Platform-Code' => 'JIO', 'Referer' => $videoUrl];
+        $this->headers = [
+            'Hotstarauth' => generateHotstarAuth(),
+            'X-Country-Code' => 'IN',
+            'X-Platform-Code' => 'JIO',
+            'Referer' => $videoUrl,
+            'X-HS-Platform' => 'web',
+            'X-HS-AppVersion' => '6.72.2',
+            'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.122 Safari/537.36',
+            'Origin' => 'https://www.hotstar.com'
+        ];
         $this->refreshTokenHeaders = [
             'hotstarauth' =>  generateHotstarAuth(),
             'userIdentity' => 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJ1bV9hY2Nlc3MiLCJleHAiOjE1OTAzMDE5OTYsImlhdCI6MTU4OTY5NzE5NiwiaXNzIjoiVFMiLCJzdWIiOiJ7XCJoSWRcIjpcIjU5YjkxMTBkMDM2ZjQ3M2U5OTBhNzFiNDAwMDM5MzRkXCIsXCJwSWRcIjpcImVjNmRmY2Y1ZTJhYzRhYWJhZjNjOTBlY2I0YTY5MTVlXCIsXCJuYW1lXCI6XCJHdWVzdCBVc2VyXCIsXCJpcFwiOlwiMjIzLjIyNi4yOS4yMjdcIixcImNvdW50cnlDb2RlXCI6XCJpblwiLFwiY3VzdG9tZXJUeXBlXCI6XCJudVwiLFwidHlwZVwiOlwiZGV2aWNlXCIsXCJpc0VtYWlsVmVyaWZpZWRcIjpmYWxzZSxcImlzUGhvbmVWZXJpZmllZFwiOmZhbHNlLFwiZGV2aWNlSWRcIjpcImExMTg1MTFhLTJmYjktNDhmOS04MGM5LWY1OTlkMjdlYTZmNlwiLFwicHJvZmlsZVwiOlwiQURVTFRcIixcInZlcnNpb25cIjpcInYyXCIsXCJzdWJzY3JpcHRpb25zXCI6e1wiaW5cIjp7fX0sXCJpc3N1ZWRBdFwiOjE1ODk2OTcxOTY2NzJ9IiwidmVyc2lvbiI6IjFfMCJ9.bkx7DodQSFohwmzqf8RmKOr3tuORgVFEh_qbtdqzeVA',
@@ -178,11 +187,9 @@ class VideoFormats {
                     break;
                 }
             }
-            
-            $refreshToken = $this->getRefreshToken();
 
             $this->headers += [
-                "X-HS-UserToken" => $refreshToken["description"]["userIdentity"]
+                "X-HS-UserToken" => $this->getRefreshToken()
             ];
 
             $url = $this->playbackUri . "&tas=10000";
@@ -210,6 +217,8 @@ class VideoFormats {
                 throw new Exception("Error processing request for playbackUri");
             }*/
 
+            echo "\nplaybackUriResponse: $playbackUriResponse\n";
+
             if(strpos($playbackUriResponseJson["message"], "success") === false) {
                 if ($this->getDownloadRetries() <= 5) {
                     echo "Retrying count " . $this->getDownloadRetries() . ".....";
@@ -224,7 +233,7 @@ class VideoFormats {
 
             //$playBackSets = $playbackUriResponseJson["body"]["results"]["playBackSets"];
             $playBackSets = $playbackUriResponseJson["data"]["playBackSets"];
-
+            
             $dashAudioFormats = [];
             $dashVideoFormats = [];
             $dashWebmAudioFormats = [];
