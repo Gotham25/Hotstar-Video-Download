@@ -88,6 +88,12 @@ mysqli_query($link, $sql);
 mysqli_close($link);
 */
 
-echo "{\"auth\":\"" . $generatedAuth . "\",\"timestamp\":$timestamp}";
+$response = array();
+header('Content-Type: application/json');
+$response["auth"] = $generatedAuth;
+$response["timestamp"] = $timestamp;
+echo json_encode($response);
+
+//echo "{\"auth\":\"" . $generatedAuth . "\",\"timestamp\":$timestamp}";
 
 ?>
