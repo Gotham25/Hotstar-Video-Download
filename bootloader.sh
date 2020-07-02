@@ -55,4 +55,4 @@ chmod +x ff*
 export PATH="$PATH:$(pwd)/ffmpeg:$(pwd)/ffprobe"
 echo "FFMPEG and FFPROBE libs installed successfully"
 
-heroku-php-apache2  #start web server
+heroku-php-apache2 -v #start web server
