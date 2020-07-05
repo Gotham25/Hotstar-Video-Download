@@ -2,36 +2,11 @@
 
 error_log(json_encode($_SERVER));
 
-// respond to preflights
-if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
-  // return only the headers and not the content
-  // only allow CORS if we're doing a GET - i.e. no saving for now.
-  if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_METHOD']) &&
-      $_SERVER['HTTP_ACCESS_CONTROL_REQUEST_METHOD'] == 'GET' &&
-      isset($_SERVER['ORIGIN'])) {
-    /*
-    *   &&
-        is_approved($_SERVER['HTTP_ORIGIN'])
-    */
-    $allowedOrigin = $_SERVER['ORIGIN'];
-    header('Access-Control-Allow-Methods: GET'); //...
-    header('Access-Control-Allow-Origin: ' . $allowedOrigin);
-    header('Access-Control-Allow-Headers: access-control-allow-origin');
-    header('Access-Control-Max-Age: 3600');
-  }
-  exit;
-}
-
-/*
-header("Access-Control-Allow-Origin: http://localhost:4200");
-header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Method: GET");
-//header("Access-Control-Max-Age: 3600");
-header("Access-Control-Allow-Headers: access-control-allow-headers");
-
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-   return 0;
-}*/
+  header('Access-Control-Allow-Origin: *');
+  header('Access-Control-Allow-Headers: Content-Type'); 
+  return 0;
+}
 
 function generateHotstarAuth($microTime) {
     $st = round($microTime);
@@ -93,9 +68,8 @@ $response["auth"] = $generatedAuth;
 $response["timestamp"] = $timestamp;
 
 $allowedOrigin = $_SERVER['ORIGIN'];
-header('Access-Control-Allow-Methods: GET'); //...
-header('Access-Control-Allow-Origin: ' . $allowedOrigin);
-header('Access-Control-Allow-Headers: access-control-allow-origin');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Headers: Content-Type');
 header('Content-Type: application/json');
 
 echo json_encode($response);
