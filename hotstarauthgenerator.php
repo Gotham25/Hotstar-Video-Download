@@ -3,7 +3,7 @@
 error_log(json_encode($_SERVER));
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-  header('Access-Control-Allow-Origin: *');
+  header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']);
   header('Access-Control-Allow-Headers: Content-Type'); 
   return 0;
 }
@@ -68,7 +68,7 @@ $response["auth"] = $generatedAuth;
 $response["timestamp"] = $timestamp;
 
 $allowedOrigin = $_SERVER['ORIGIN'];
-header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']);
 header('Access-Control-Allow-Headers: Content-Type');
 header('Content-Type: application/json');
 
