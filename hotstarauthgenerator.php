@@ -1,12 +1,5 @@
 <?php
 
-function get_allowed_headers($requestType) {
-    if($requestType === 'GET') {
-        return 'Access-Control-Allow-Origin';
-    }
-    return null;
-}
-
 // respond to preflights
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
   // return only the headers and not the content
@@ -19,10 +12,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
         is_approved($_SERVER['HTTP_ORIGIN'])
     */
     $allowedOrigin = $_SERVER['ORIGIN'];
-    $allowedHeaders = get_allowed_headers($allowedOrigin);
     header('Access-Control-Allow-Methods: GET, POST, OPTIONS'); //...
     header('Access-Control-Allow-Origin: ' . $allowedOrigin);
-    header('Access-Control-Allow-Headers: ' . $allowedHeaders);
+    header('Access-Control-Allow-Headers: access-control-allow-origin');
     header('Access-Control-Max-Age: 3600');
   }
   exit;
