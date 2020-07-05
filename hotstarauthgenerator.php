@@ -1,5 +1,12 @@
 <?php
 
+function get_allowed_headers($requestType) {
+    if($requestType === 'GET') {
+        return 'Origin, Content-Type, Accept';
+    }
+    return null;
+}
+
 // respond to preflights
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
   // return only the headers and not the content
@@ -87,6 +94,11 @@ mysqli_query($link, $sql);
 // Close connection 
 mysqli_close($link);
 */
+
+$allowedOrigin = $_SERVER['ORIGIN'];
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Origin: ' . $allowedOrigin);
+header('Content-Type: application/json');
 
 $response = array();
 header('Content-Type: application/json');
