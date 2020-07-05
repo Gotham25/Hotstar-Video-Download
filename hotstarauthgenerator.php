@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
         is_approved($_SERVER['HTTP_ORIGIN'])
     */
     $allowedOrigin = $_SERVER['ORIGIN'];
-    header('Access-Control-Allow-Methods: GET, POST, OPTIONS'); //...
+    header('Access-Control-Allow-Methods: GET'); //...
     header('Access-Control-Allow-Origin: ' . $allowedOrigin);
     header('Access-Control-Allow-Headers: access-control-allow-origin');
     header('Access-Control-Max-Age: 3600');
@@ -93,7 +93,7 @@ $response["auth"] = $generatedAuth;
 $response["timestamp"] = $timestamp;
 
 $allowedOrigin = $_SERVER['ORIGIN'];
-header('Access-Control-Allow-Methods: GET, POST, OPTIONS'); //...
+header('Access-Control-Allow-Methods: GET'); //...
 header('Access-Control-Allow-Origin: ' . $allowedOrigin);
 header('Access-Control-Allow-Headers: access-control-allow-origin');
 header('Content-Type: application/json');
