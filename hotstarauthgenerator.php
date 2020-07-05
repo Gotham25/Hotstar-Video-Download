@@ -1,8 +1,6 @@
 <?php
 
-error_log("hello, this is a test!");
-
-file_put_contents("php://stderr", "hello, this is a test!\n");
+error_log(json_encode($_SERVER));
 
 // respond to preflights
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
