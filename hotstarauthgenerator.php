@@ -88,16 +88,16 @@ mysqli_query($link, $sql);
 // Close connection 
 mysqli_close($link);
 */
-
-$allowedOrigin = $_SERVER['ORIGIN'];
-header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-header('Access-Control-Allow-Origin: ' . $allowedOrigin);
-header('Content-Type: application/json');
-
 $response = array();
-header('Content-Type: application/json');
 $response["auth"] = $generatedAuth;
 $response["timestamp"] = $timestamp;
+
+$allowedOrigin = $_SERVER['ORIGIN'];
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS'); //...
+header('Access-Control-Allow-Origin: ' . $allowedOrigin);
+header('Access-Control-Allow-Headers: access-control-allow-origin');
+header('Content-Type: application/json');
+
 echo json_encode($response);
 
 //echo "{\"auth\":\"" . $generatedAuth . "\",\"timestamp\":$timestamp}";
