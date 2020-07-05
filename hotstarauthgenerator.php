@@ -1,5 +1,9 @@
 <?php
 
+error_log("hello, this is a test!");
+
+file_put_contents("php://stderr", "hello, this is a test!\n");
+
 // respond to preflights
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
   // return only the headers and not the content
