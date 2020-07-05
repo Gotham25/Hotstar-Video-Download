@@ -1,7 +1,6 @@
 <?php
 
 error_log(json_encode($_SERVER));
-header_remove('Access-Control-Allow-Origin');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
   //header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']);
