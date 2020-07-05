@@ -2,7 +2,7 @@
 
 function get_allowed_headers($requestType) {
     if($requestType === 'GET') {
-        return 'Origin, Content-Type, Accept';
+        return 'Origin, Content-Type, Accept, Access-Control-Allow-Origin';
     }
     return null;
 }
