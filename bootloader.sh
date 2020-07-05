@@ -55,6 +55,6 @@ chmod +x ff*
 export PATH="$PATH:$(pwd)/ffmpeg:$(pwd)/ffprobe"
 echo "FFMPEG and FFPROBE libs installed successfully"
 
-sed -ri -e 's/^([ \t]*)(<\/VirtualHost>)/\1\tHeader set Access-Control-Allow-Origin "*"\n\1\2/g' /app/vendor/heroku/heroku-buildpack-php/conf/apache2/*.conf
+#sed -ri -e 's/^([ \t]*)(<\/VirtualHost>)/\1\tHeader set Access-Control-Allow-Origin "*"\n\1\2/g' /app/vendor/heroku/heroku-buildpack-php/conf/apache2/*.conf
 
 heroku-php-apache2 -v #start web server
