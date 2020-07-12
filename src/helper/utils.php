@@ -28,7 +28,7 @@ function make_get_request($url, array $headers = []) {
     $proxyPort = "6666";
 
     try {
-        $guzzleResponse = $guzzleClient->request("GET", $url, ["headers" => $headers, "proxy" => "tcp://$proxyIP:$proxyPort"]);
+        $guzzleResponse = $guzzleClient->request("GET", $url, ["headers" => $headers, "proxy" => "$proxyIP:$proxyPort", "debug" => true]);
         $guzzleResponseCode = $guzzleResponse->getStatusCode();
 
         if ($guzzleResponseCode == 200) {
